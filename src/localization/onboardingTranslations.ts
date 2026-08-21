@@ -1,0 +1,565 @@
+export const ONBOARDING_TRANSLATIONS: Record<string, {
+  learning_reasons: Array<{ id: number; icon: string; text: string }>;
+  current_skill_levels: Array<{ id: number; cefr: string; text: string }>;
+}> = {
+  en: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Job & Career" },
+      { id: 1, icon: "🎓", text: "Studies & Exams" },
+      { id: 2, icon: "✈️", text: "Travel & Abroad" },
+      { id: 3, icon: "💬", text: "Daily Confidence" },
+      { id: 4, icon: "📱", text: "Entertainment" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "I know very little — maybe a few words" },
+      { id: 1, cefr: "A2", text: "I understand simple sentences but struggle to speak" },
+      { id: 2, cefr: "B1", text: "I speak a little but lack confidence and fluency" },
+      { id: 3, cefr: "B2", text: "I can communicate but want to sound more natural" },
+    ],
+  },
+  hi: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "नौकरी और करियर" },
+      { id: 1, icon: "🎓", text: "पढ़ाई और परीक्षा" },
+      { id: 2, icon: "✈️", text: "यात्रा और विदेश" },
+      { id: 3, icon: "💬", text: "रोज़मर्रा का आत्मविश्वास" },
+      { id: 4, icon: "📱", text: "मनोरंजन" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "मुझे बहुत कम आता है — शायद कुछ शब्द" },
+      { id: 1, cefr: "A2", text: "मैं सरल वाक्य समझता/समझती हूँ पर बोलने में तकलीफ होती है" },
+      { id: 2, cefr: "B1", text: "मैं थोड़ा बोल सकता/सकती हूँ पर आत्मविश्वास और प्रवाह की कमी है" },
+      { id: 3, cefr: "B2", text: "मैं बातचीत कर सकता/सकती हूँ पर और स्वाभाविक लगना चाहता/चाहती हूँ" },
+    ],
+  },
+  gu: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "નોકરી અને કારકિર્દી" },
+      { id: 1, icon: "🎓", text: "ભણતર અને પરીક્ષા" },
+      { id: 2, icon: "✈️", text: "પ્રવાસ અને વિદેશ" },
+      { id: 3, icon: "💬", text: "રોજિંદો આત્મવિશ્વાસ" },
+      { id: 4, icon: "📱", text: "મનોરંજન" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "મને ઘણું ઓછું આવડે છે — કદાચ થોડા શબ્દો" },
+      { id: 1, cefr: "A2", text: "હું સાદા વાક્ય સમજી શકું છું પણ બોલવામાં તકલીફ છે" },
+      { id: 2, cefr: "B1", text: "હું થોડું બોલી શકું છું પણ આત્મવિશ્વાસ અને પ્રવાહ ઓછો છે" },
+      { id: 3, cefr: "B2", text: "હું વાતચીત કરી શકું છું પણ વધુ સ્વાભાવિક સંભળાવા ચાહું છું" },
+    ],
+  },
+  mr: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "नोकरी आणि करिअर" },
+      { id: 1, icon: "🎓", text: "शिक्षण आणि परीक्षा" },
+      { id: 2, icon: "✈️", text: "प्रवास आणि परदेश" },
+      { id: 3, icon: "💬", text: "रोजचा आत्मविश्वास" },
+      { id: 4, icon: "📱", text: "मनोरंजन" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "मला फार कमी येते — कदाचित काही शब्द" },
+      { id: 1, cefr: "A2", text: "मी साधी वाक्ये समजतो/समजते पण बोलण्यात अडचण येते" },
+      { id: 2, cefr: "B1", text: "मी थोडे बोलू शकतो/शकते पण आत्मविश्वास आणि ओघ कमी आहे" },
+      { id: 3, cefr: "B2", text: "मी बोलू शकतो/शकते पण अधिक नैसर्गिक वाटायचे आहे" },
+    ],
+  },
+  bn: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "চাকরি ও ক্যারিয়ার" },
+      { id: 1, icon: "🎓", text: "পড়াশোনা ও পরীক্ষা" },
+      { id: 2, icon: "✈️", text: "ভ্রমণ ও বিদেশ" },
+      { id: 3, icon: "💬", text: "দৈনন্দিন আত্মবিশ্বাস" },
+      { id: 4, icon: "📱", text: "বিনোদন" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "আমি খুব কম জানি — হয়তো কিছু শব্দ" },
+      { id: 1, cefr: "A2", text: "আমি সহজ বাক্য বুঝি কিন্তু বলতে কষ্ট হয়" },
+      { id: 2, cefr: "B1", text: "আমি একটু বলতে পারি কিন্তু আত্মবিশ্বাস ও প্রবাহের অভাব আছে" },
+      { id: 3, cefr: "B2", text: "আমি কথা বলতে পারি কিন্তু আরও স্বাভাবিক শোনাতে চাই" },
+    ],
+  },
+  ta: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "வேலை & தொழில்" },
+      { id: 1, icon: "🎓", text: "படிப்பு & தேர்வுகள்" },
+      { id: 2, icon: "✈️", text: "பயணம் & வெளிநாடு" },
+      { id: 3, icon: "💬", text: "தினசரி நம்பிக்கை" },
+      { id: 4, icon: "📱", text: "பொழுதுபோக்கு" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "எனக்கு மிகவும் குறைவாகவே தெரியும் — சில வார்த்தைகள் மட்டுமே" },
+      { id: 1, cefr: "A2", text: "எளிய வாக்கியங்களை புரிந்துகொள்கிறேன் ஆனால் பேச சிரமப்படுகிறேன்" },
+      { id: 2, cefr: "B1", text: "கொஞ்சம் பேசுகிறேன் ஆனால் நம்பிக்கையும் சரளமும் குறைவு" },
+      { id: 3, cefr: "B2", text: "தொடர்பு கொள்ள முடிகிறது ஆனால் இன்னும் இயல்பாக பேச விரும்புகிறேன்" },
+    ],
+  },
+  te: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "ఉద్యోగం & కెరీర్" },
+      { id: 1, icon: "🎓", text: "చదువు & పరీక్షలు" },
+      { id: 2, icon: "✈️", text: "ప్రయాణం & విదేశాలు" },
+      { id: 3, icon: "💬", text: "రోజువారీ నమ్మకం" },
+      { id: 4, icon: "📱", text: "వినోదం" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "నాకు చాలా తక్కువ తెలుసు — కొన్ని పదాలు మాత్రమే" },
+      { id: 1, cefr: "A2", text: "నేను సాధారణ వాక్యాలు అర్థం చేసుకుంటాను కానీ మాట్లాడటానికి కష్టంగా ఉంటుంది" },
+      { id: 2, cefr: "B1", text: "నేను కొంచెం మాట్లాడగలను కానీ నమ్మకం మరియు ప్రవాహం తక్కువగా ఉంది" },
+      { id: 3, cefr: "B2", text: "నేను మాట్లాడగలను కానీ మరింత సహజంగా వినిపించాలని కోరుకుంటున్నాను" },
+    ],
+  },
+  kn: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "ಉದ್ಯೋಗ & ವೃತ್ತಿ" },
+      { id: 1, icon: "🎓", text: "ಶಿಕ್ಷಣ & ಪರೀಕ್ಷೆ" },
+      { id: 2, icon: "✈️", text: "ಪ್ರಯಾಣ & ವಿದೇಶ" },
+      { id: 3, icon: "💬", text: "ದೈನಂದಿನ ಆತ್ಮವಿಶ್ವಾಸ" },
+      { id: 4, icon: "📱", text: "ಮನರಂಜನೆ" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "ನನಗೆ ತುಂಬಾ ಕಡಿಮೆ ಗೊತ್ತಿದೆ — ಕೆಲವು ಪದಗಳಷ್ಟೆ" },
+      { id: 1, cefr: "A2", text: "ನಾನು ಸರಳ ವಾಕ್ಯಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತೇನೆ ಆದರೆ ಮಾತಾಡಲು ಕಷ್ಟವಾಗುತ್ತದೆ" },
+      { id: 2, cefr: "B1", text: "ನಾನು ಸ್ವಲ್ಪ ಮಾತಾಡಬಲ್ಲೆ ಆದರೆ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಸ್ಖಲಿತತೆ ಕಡಿಮೆ" },
+      { id: 3, cefr: "B2", text: "ನಾನು ಸಂವಹನ ನಡೆಸಬಲ್ಲೆ ಆದರೆ ಇನ್ನಷ್ಟು ಸ್ವಾಭಾವಿಕವಾಗಿ ಕೇಳಿಸಬೇಕೆಂದಿದ್ದೇನೆ" },
+    ],
+  },
+  ml: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "ജോലി & കരിയർ" },
+      { id: 1, icon: "🎓", text: "പഠനം & പരീക്ഷ" },
+      { id: 2, icon: "✈️", text: "യാത്ര & വിദേശം" },
+      { id: 3, icon: "💬", text: "ദൈനംദിന ആത്മവിശ്വാസം" },
+      { id: 4, icon: "📱", text: "വിനോദം" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "എനിക്ക് വളരെ കുറച്ചേ അറിയൂ — ഒരുപക്ഷേ ചില വാക്കുകൾ" },
+      { id: 1, cefr: "A2", text: "ഞാൻ ലളിതമായ വാക്യങ്ങൾ മനസ്സിലാക്കുന്നു പക്ഷേ സംസാരിക്കാൻ പ്രയാസമാണ്" },
+      { id: 2, cefr: "B1", text: "ഞാൻ കുറച്ച് സംസാരിക്കാം പക്ഷേ ആത്മവിശ്വാസവും ഒഴുക്കും കുറവാണ്" },
+      { id: 3, cefr: "B2", text: "എനിക്ക് ആശയവിനിമയം നടത്താൻ കഴിയും പക്ഷേ കൂടുതൽ സ്വാഭാവികമായി കേൾക്കണം" },
+    ],
+  },
+  pa: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "ਨੌਕਰੀ ਅਤੇ ਕਰੀਅਰ" },
+      { id: 1, icon: "🎓", text: "ਪੜ੍ਹਾਈ ਅਤੇ ਪ੍ਰੀਖਿਆਵਾਂ" },
+      { id: 2, icon: "✈️", text: "ਯਾਤਰਾ ਅਤੇ ਵਿਦੇਸ਼" },
+      { id: 3, icon: "💬", text: "ਰੋਜ਼ਾਨਾ ਆਤਮਵਿਸ਼ਵਾਸ" },
+      { id: 4, icon: "📱", text: "ਮਨੋਰੰਜਨ" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "ਮੈਨੂੰ ਬਹੁਤ ਘੱਟ ਆਉਂਦਾ ਹੈ — ਸ਼ਾਇਦ ਕੁਝ ਸ਼ਬਦ" },
+      { id: 1, cefr: "A2", text: "ਮੈਂ ਸਾਧਾਰਨ ਵਾਕ ਸਮਝਦਾ/ਸਮਝਦੀ ਹਾਂ ਪਰ ਬੋਲਣ ਵਿੱਚ ਮੁਸ਼ਕਲ ਹੈ" },
+      { id: 2, cefr: "B1", text: "ਮੈਂ ਥੋੜਾ ਬੋਲ ਸਕਦਾ/ਸਕਦੀ ਹਾਂ ਪਰ ਆਤਮਵਿਸ਼ਵਾਸ ਅਤੇ ਰਵਾਨੀ ਘੱਟ ਹੈ" },
+      { id: 3, cefr: "B2", text: "ਮੈਂ ਗੱਲਬਾਤ ਕਰ ਸਕਦਾ/ਸਕਦੀ ਹਾਂ ਪਰ ਹੋਰ ਕੁਦਰਤੀ ਲੱਗਣਾ ਚਾਹੁੰਦਾ/ਚਾਹੁੰਦੀ ਹਾਂ" },
+    ],
+  },
+  ur: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "نوکری اور کیریئر" },
+      { id: 1, icon: "🎓", text: "پڑھائی اور امتحانات" },
+      { id: 2, icon: "✈️", text: "سفر اور بیرون ملک" },
+      { id: 3, icon: "💬", text: "روزمرہ کا اعتماد" },
+      { id: 4, icon: "📱", text: "تفریح" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "مجھے بہت کم آتا ہے — شاید کچھ الفاظ" },
+      { id: 1, cefr: "A2", text: "میں سادہ جملے سمجھتا/سمجھتی ہوں لیکن بولنے میں دقت ہوتی ہے" },
+      { id: 2, cefr: "B1", text: "میں تھوڑا بول سکتا/سکتی ہوں لیکن اعتماد اور روانی کم ہے" },
+      { id: 3, cefr: "B2", text: "میں بات کر سکتا/سکتی ہوں لیکن زیادہ فطری لگنا چاہتا/چاہتی ہوں" },
+    ],
+  },
+  de: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Job & Karriere" },
+      { id: 1, icon: "🎓", text: "Studium & Prüfungen" },
+      { id: 2, icon: "✈️", text: "Reisen & Ausland" },
+      { id: 3, icon: "💬", text: "Alltägliches Selbstvertrauen" },
+      { id: 4, icon: "📱", text: "Unterhaltung" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Ich weiß sehr wenig — vielleicht ein paar Wörter" },
+      { id: 1, cefr: "A2", text: "Ich verstehe einfache Sätze, aber das Sprechen fällt mir schwer" },
+      { id: 2, cefr: "B1", text: "Ich spreche ein wenig, aber mir fehlen Selbstvertrauen und Fluss" },
+      { id: 3, cefr: "B2", text: "Ich kann mich verständigen, möchte aber natürlicher klingen" },
+    ],
+  },
+  fr: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Emploi et carrière" },
+      { id: 1, icon: "🎓", text: "Études et examens" },
+      { id: 2, icon: "✈️", text: "Voyages et étranger" },
+      { id: 3, icon: "💬", text: "Confiance au quotidien" },
+      { id: 4, icon: "📱", text: "Divertissement" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Je sais très peu — peut-être quelques mots" },
+      { id: 1, cefr: "A2", text: "Je comprends des phrases simples mais j'ai du mal à parler" },
+      { id: 2, cefr: "B1", text: "Je parle un peu mais il me manque confiance et fluidité" },
+      { id: 3, cefr: "B2", text: "Je peux communiquer mais je veux paraître plus naturel(le)" },
+    ],
+  },
+  es: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Trabajo y carrera" },
+      { id: 1, icon: "🎓", text: "Estudios y exámenes" },
+      { id: 2, icon: "✈️", text: "Viajes y extranjero" },
+      { id: 3, icon: "💬", text: "Confianza diaria" },
+      { id: 4, icon: "📱", text: "Entretenimiento" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Sé muy poco — quizás unas pocas palabras" },
+      { id: 1, cefr: "A2", text: "Entiendo frases simples pero me cuesta hablar" },
+      { id: 2, cefr: "B1", text: "Hablo un poco pero me falta confianza y fluidez" },
+      { id: 3, cefr: "B2", text: "Puedo comunicarme pero quiero sonar más natural" },
+    ],
+  },
+  nl: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Werk & carrière" },
+      { id: 1, icon: "🎓", text: "Studies & examens" },
+      { id: 2, icon: "✈️", text: "Reizen & buitenland" },
+      { id: 3, icon: "💬", text: "Dagelijks zelfvertrouwen" },
+      { id: 4, icon: "📱", text: "Entertainment" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Ik weet heel weinig — misschien een paar woorden" },
+      { id: 1, cefr: "A2", text: "Ik begrijp eenvoudige zinnen maar heb moeite met spreken" },
+      { id: 2, cefr: "B1", text: "Ik spreek een beetje maar mis zelfvertrouwen en vloeiendheid" },
+      { id: 3, cefr: "B2", text: "Ik kan communiceren maar wil natuurlijker klinken" },
+    ],
+  },
+  pt: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Emprego e carreira" },
+      { id: 1, icon: "🎓", text: "Estudos e exames" },
+      { id: 2, icon: "✈️", text: "Viagens e exterior" },
+      { id: 3, icon: "💬", text: "Confiança no dia a dia" },
+      { id: 4, icon: "📱", text: "Entretenimento" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Sei muito pouco — talvez algumas palavras" },
+      { id: 1, cefr: "A2", text: "Entendo frases simples mas tenho dificuldade em falar" },
+      { id: 2, cefr: "B1", text: "Falo um pouco mas falta-me confiança e fluência" },
+      { id: 3, cefr: "B2", text: "Consigo comunicar mas quero soar mais natural" },
+    ],
+  },
+  it: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Lavoro e carriera" },
+      { id: 1, icon: "🎓", text: "Studio ed esami" },
+      { id: 2, icon: "✈️", text: "Viaggi e estero" },
+      { id: 3, icon: "💬", text: "Sicurezza quotidiana" },
+      { id: 4, icon: "📱", text: "Intrattenimento" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "So pochissimo — forse qualche parola" },
+      { id: 1, cefr: "A2", text: "Capisco frasi semplici ma fatico a parlare" },
+      { id: 2, cefr: "B1", text: "Parlo un po' ma mi mancano sicurezza e fluidità" },
+      { id: 3, cefr: "B2", text: "Riesco a comunicare ma voglio suonare più naturale" },
+    ],
+  },
+  pl: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Praca i kariera" },
+      { id: 1, icon: "🎓", text: "Nauka i egzaminy" },
+      { id: 2, icon: "✈️", text: "Podróże i zagranica" },
+      { id: 3, icon: "💬", text: "Codzienna pewność siebie" },
+      { id: 4, icon: "📱", text: "Rozrywka" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Wiem bardzo mało — może kilka słów" },
+      { id: 1, cefr: "A2", text: "Rozumiem proste zdania, ale mam trudności z mówieniem" },
+      { id: 2, cefr: "B1", text: "Mówię trochę, ale brakuje mi pewności siebie i płynności" },
+      { id: 3, cefr: "B2", text: "Potrafię się porozumieć, ale chcę brzmieć bardziej naturalnie" },
+    ],
+  },
+  sv: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Jobb & karriär" },
+      { id: 1, icon: "🎓", text: "Studier & prov" },
+      { id: 2, icon: "✈️", text: "Resor & utomlands" },
+      { id: 3, icon: "💬", text: "Dagligt självförtroende" },
+      { id: 4, icon: "📱", text: "Underhållning" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Jag kan väldigt lite — kanske några ord" },
+      { id: 1, cefr: "A2", text: "Jag förstår enkla meningar men har svårt att tala" },
+      { id: 2, cefr: "B1", text: "Jag talar lite men saknar självförtroende och flyt" },
+      { id: 3, cefr: "B2", text: "Jag kan kommunicera men vill låta mer naturlig" },
+    ],
+  },
+  no: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Jobb & karriere" },
+      { id: 1, icon: "🎓", text: "Studier & eksamener" },
+      { id: 2, icon: "✈️", text: "Reiser & utlandet" },
+      { id: 3, icon: "💬", text: "Daglig selvtillit" },
+      { id: 4, icon: "📱", text: "Underholdning" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Jeg kan veldig lite — kanskje noen ord" },
+      { id: 1, cefr: "A2", text: "Jeg forstår enkle setninger men sliter med å snakke" },
+      { id: 2, cefr: "B1", text: "Jeg snakker litt men mangler selvtillit og flyt" },
+      { id: 3, cefr: "B2", text: "Jeg kan kommunisere men vil høres mer naturlig ut" },
+    ],
+  },
+  da: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Job & karriere" },
+      { id: 1, icon: "🎓", text: "Studier & eksamener" },
+      { id: 2, icon: "✈️", text: "Rejser & udlandet" },
+      { id: 3, icon: "💬", text: "Daglig selvtillid" },
+      { id: 4, icon: "📱", text: "Underholdning" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Jeg ved meget lidt — måske nogle få ord" },
+      { id: 1, cefr: "A2", text: "Jeg forstår enkle sætninger, men det er svært at tale" },
+      { id: 2, cefr: "B1", text: "Jeg taler lidt, men jeg mangler selvtillid og flydende tale" },
+      { id: 3, cefr: "B2", text: "Jeg kan kommunikere, men jeg ønsker at lyde mere naturlig" },
+    ],
+  },
+  fi: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Työ & ura" },
+      { id: 1, icon: "🎓", text: "Opiskelu & kokeet" },
+      { id: 2, icon: "✈️", text: "Matkailu & ulkomaat" },
+      { id: 3, icon: "💬", text: "Päivittäinen itseluottamus" },
+      { id: 4, icon: "📱", text: "Viihde" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Osaan hyvin vähän — ehkä muutaman sanan" },
+      { id: 1, cefr: "A2", text: "Ymmärrän yksinkertaisia lauseita mutta puhuminen on vaikeaa" },
+      { id: 2, cefr: "B1", text: "Puhun hieman mutta itseluottamus ja sujuvuus puuttuvat" },
+      { id: 3, cefr: "B2", text: "Pystyn kommunikoimaan mutta haluan kuulostaa luontevammalta" },
+    ],
+  },
+  cs: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Práce a kariéra" },
+      { id: 1, icon: "🎓", text: "Studium a zkoušky" },
+      { id: 2, icon: "✈️", text: "Cestování a zahraničí" },
+      { id: 3, icon: "💬", text: "Každodenní sebevědomí" },
+      { id: 4, icon: "📱", text: "Zábava" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Vím velmi málo — možná pár slov" },
+      { id: 1, cefr: "A2", text: "Rozumím jednoduchým větám, ale mám potíže s mluvením" },
+      { id: 2, cefr: "B1", text: "Mluvím trochu, ale chybí mi sebevědomí a plynulost" },
+      { id: 3, cefr: "B2", text: "Mohu se komunikovat, ale chci znít přirozeněji" },
+    ],
+  },
+  ru: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Работа и карьера" },
+      { id: 1, icon: "🎓", text: "Учёба и экзамены" },
+      { id: 2, icon: "✈️", text: "Путешествия и заграница" },
+      { id: 3, icon: "💬", text: "Уверенность в повседневной жизни" },
+      { id: 4, icon: "📱", text: "Развлечения" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Я знаю очень мало — может быть, несколько слов" },
+      { id: 1, cefr: "A2", text: "Я понимаю простые предложения, но мне трудно говорить" },
+      { id: 2, cefr: "B1", text: "Я немного говорю, но мне не хватает уверенности и беглости" },
+      { id: 3, cefr: "B2", text: "Я могу общаться, но хочу звучать более естественно" },
+    ],
+  },
+  ar: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "العمل والمهنة" },
+      { id: 1, icon: "🎓", text: "الدراسة والامتحانات" },
+      { id: 2, icon: "✈️", text: "السفر والخارج" },
+      { id: 3, icon: "💬", text: "الثقة اليومية" },
+      { id: 4, icon: "📱", text: "الترفيه" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "أعرف القليل جداً — ربما بعض الكلمات" },
+      { id: 1, cefr: "A2", text: "أفهم الجمل البسيطة لكن يصعب عليّ التحدث" },
+      { id: 2, cefr: "B1", text: "أتحدث قليلاً لكنني أفتقر إلى الثقة والطلاقة" },
+      { id: 3, cefr: "B2", text: "أستطيع التواصل لكنني أريد أن أبدو أكثر طبيعية" },
+    ],
+  },
+  tr: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "İş ve kariyer" },
+      { id: 1, icon: "🎓", text: "Eğitim ve sınavlar" },
+      { id: 2, icon: "✈️", text: "Seyahat ve yurt dışı" },
+      { id: 3, icon: "💬", text: "Günlük özgüven" },
+      { id: 4, icon: "📱", text: "Eğlence" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Çok az şey biliyorum — belki birkaç kelime" },
+      { id: 1, cefr: "A2", text: "Basit cümleleri anlıyorum ama konuşmak zor geliyor" },
+      { id: 2, cefr: "B1", text: "Biraz konuşabiliyorum ama özgüven ve akıcılığım eksik" },
+      { id: 3, cefr: "B2", text: "İletişim kurabiliyorum ama daha doğal konuşmak istiyorum" },
+    ],
+  },
+  he: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "עבודה וקריירה" },
+      { id: 1, icon: "🎓", text: "לימודים ובחינות" },
+      { id: 2, icon: "✈️", text: "נסיעות וחו\"ל" },
+      { id: 3, icon: "💬", text: "ביטחון יומיומי" },
+      { id: 4, icon: "📱", text: "בידור" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "אני יודע/ת מעט מאוד — אולי כמה מילים" },
+      { id: 1, cefr: "A2", text: "אני מבין/ה משפטים פשוטים אבל מתקשה לדבר" },
+      { id: 2, cefr: "B1", text: "אני מדבר/ת קצת אבל חסרים לי ביטחון ושטף" },
+      { id: 3, cefr: "B2", text: "אני יכול/ה לתקשר אבל רוצה להישמע יותר טבעי/ת" },
+    ],
+  },
+  zh: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "工作与职业" },
+      { id: 1, icon: "🎓", text: "学习与考试" },
+      { id: 2, icon: "✈️", text: "旅行与出国" },
+      { id: 3, icon: "💬", text: "日常自信" },
+      { id: 4, icon: "📱", text: "娱乐" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "我知道的很少 — 也许几个单词" },
+      { id: 1, cefr: "A2", text: "我能理解简单句子但说话有困难" },
+      { id: 2, cefr: "B1", text: "我能说一点但缺乏自信和流利度" },
+      { id: 3, cefr: "B2", text: "我能交流但想说得更自然" },
+    ],
+  },
+  ja: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "仕事・キャリア" },
+      { id: 1, icon: "🎓", text: "勉強・試験" },
+      { id: 2, icon: "✈️", text: "旅行・海外" },
+      { id: 3, icon: "💬", text: "日常での自信" },
+      { id: 4, icon: "📱", text: "エンターテインメント" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "ほとんど知らない — 数単語程度かも" },
+      { id: 1, cefr: "A2", text: "簡単な文はわかるが、話すのが難しい" },
+      { id: 2, cefr: "B1", text: "少し話せるが、自信と流暢さが足りない" },
+      { id: 3, cefr: "B2", text: "会話はできるが、もっと自然に話したい" },
+    ],
+  },
+  ko: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "일과 커리어" },
+      { id: 1, icon: "🎓", text: "공부와 시험" },
+      { id: 2, icon: "✈️", text: "여행과 해외" },
+      { id: 3, icon: "💬", text: "일상적 자신감" },
+      { id: 4, icon: "📱", text: "오락" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "아주 조금밖에 몰라요 — 몇 단어 정도" },
+      { id: 1, cefr: "A2", text: "간단한 문장은 이해하지만 말하기가 어려워요" },
+      { id: 2, cefr: "B1", text: "조금 말할 수 있지만 자신감과 유창함이 부족해요" },
+      { id: 3, cefr: "B2", text: "의사소통은 되지만 더 자연스럽게 말하고 싶어요" },
+    ],
+  },
+  th: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "งานและอาชีพ" },
+      { id: 1, icon: "🎓", text: "การเรียนและสอบ" },
+      { id: 2, icon: "✈️", text: "การท่องเที่ยวและต่างประเทศ" },
+      { id: 3, icon: "💬", text: "ความมั่นใจในชีวิตประจำวัน" },
+      { id: 4, icon: "📱", text: "ความบันเทิง" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "ฉันรู้น้อยมาก — อาจแค่ไม่กี่คำ" },
+      { id: 1, cefr: "A2", text: "ฉันเข้าใจประโยคง่ายๆ แต่พูดลำบาก" },
+      { id: 2, cefr: "B1", text: "ฉันพูดได้นิดหน่อยแต่ขาดความมั่นใจและความคล่อง" },
+      { id: 3, cefr: "B2", text: "ฉันสื่อสารได้แต่อยากฟังดูเป็นธรรมชาติมากขึ้น" },
+    ],
+  },
+  vi: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Công việc & sự nghiệp" },
+      { id: 1, icon: "🎓", text: "Học tập & thi cử" },
+      { id: 2, icon: "✈️", text: "Du lịch & nước ngoài" },
+      { id: 3, icon: "💬", text: "Tự tin hằng ngày" },
+      { id: 4, icon: "📱", text: "Giải trí" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Tôi biết rất ít — có lẽ vài từ" },
+      { id: 1, cefr: "A2", text: "Tôi hiểu câu đơn giản nhưng khó nói" },
+      { id: 2, cefr: "B1", text: "Tôi nói được một chút nhưng thiếu tự tin và lưu loát" },
+      { id: 3, cefr: "B2", text: "Tôi có thể giao tiếp nhưng muốn nghe tự nhiên hơn" },
+    ],
+  },
+  id: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Pekerjaan & karier" },
+      { id: 1, icon: "🎓", text: "Studi & ujian" },
+      { id: 2, icon: "✈️", text: "Perjalanan & luar negeri" },
+      { id: 3, icon: "💬", text: "Kepercayaan diri sehari-hari" },
+      { id: 4, icon: "📱", text: "Hiburan" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Saya tahu sangat sedikit — mungkin beberapa kata" },
+      { id: 1, cefr: "A2", text: "Saya mengerti kalimat sederhana tapi kesulitan berbicara" },
+      { id: 2, cefr: "B1", text: "Saya bisa berbicara sedikit tapi kurang percaya diri dan lancar" },
+      { id: 3, cefr: "B2", text: "Saya bisa berkomunikasi tapi ingin terdengar lebih alami" },
+    ],
+  },
+  fil: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Trabaho & Karera" },
+      { id: 1, icon: "🎓", text: "Pag-aaral & Pagsusulit" },
+      { id: 2, icon: "✈️", text: "Paglalakbay & Ibang bansa" },
+      { id: 3, icon: "💬", text: "Pang-araw-araw na Tiwala" },
+      { id: 4, icon: "📱", text: "Libangan" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Nalalaman ko na napakakaunting — maaring ilang salita" },
+      { id: 1, cefr: "A2", text: "Nauunawaan ko ang simpleng pangungusap ngunit mahirap magsalita" },
+      { id: 2, cefr: "B1", text: "Medyo makakapangsalita ako ngunit kulang ang tiwala at kayo" },
+      { id: 3, cefr: "B2", text: "Makakasalamuha ako ngunit gusto kong mas natural na tunog" },
+    ],
+  },
+  fa: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "کار و شغل" },
+      { id: 1, icon: "🎓", text: "تحصیل و امتحانات" },
+      { id: 2, icon: "✈️", text: "سفر و خارج از کشور" },
+      { id: 3, icon: "💬", text: "اعتماد به نفس روزانه" },
+      { id: 4, icon: "📱", text: "سرگرمی" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "خیلی کم بلدم — شاید چند کلمه" },
+      { id: 1, cefr: "A2", text: "جملات ساده را می‌فهمم ولی صحبت کردن برایم سخت است" },
+      { id: 2, cefr: "B1", text: "کمی صحبت می‌کنم ولی اعتماد به نفس و روانی کم دارم" },
+      { id: 3, cefr: "B2", text: "می‌توانم ارتباط برقرار کنم ولی می‌خواهم طبیعی‌تر به نظر برسم" },
+    ],
+  },
+  af: {
+    learning_reasons: [
+      { id: 0, icon: "💼", text: "Werk & Loopbaan" },
+      { id: 1, icon: "🎓", text: "Studies & Eksamen" },
+      { id: 2, icon: "✈️", text: "Reise & Buiteland" },
+      { id: 3, icon: "💬", text: "Daaglikse Selfvertroue" },
+      { id: 4, icon: "📱", text: "Vermaak" },
+    ],
+    current_skill_levels: [
+      { id: 0, cefr: "A1", text: "Ek weet baie min — miskien 'n paar woorde" },
+      { id: 1, cefr: "A2", text: "Ek verstaan eenvoudige sinne maar het moeite met praat" },
+      { id: 2, cefr: "B1", text: "Ek praat 'n bietjie maar ek kort selfvertroue en vloeibaarheid" },
+      { id: 3, cefr: "B2", text: "Ek kan kommunikeer maar wil meer natuurlik klink" },
+    ],
+  },
+};
+
+export interface LocalizedOnboardingOptions {
+  learningReasons: Array<{ id: number; icon: string; text: string }>;
+  currentSkillLevels: Array<{ id: number; cefr: string; text: string }>;
+}
+
+/**
+ * Get localized onboarding options for a given language code
+ */
+export function getLocalizedOnboardingOptions(languageCode: string): LocalizedOnboardingOptions | null {
+  const translations = ONBOARDING_TRANSLATIONS[languageCode];
+  if (!translations) {
+    return null;
+  }
+
+  return {
+    learningReasons: translations.learning_reasons,
+    currentSkillLevels: translations.current_skill_levels,
+  };
+}

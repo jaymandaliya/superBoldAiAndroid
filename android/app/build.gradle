@@ -1,0 +1,107 @@
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
+// Generate timestamp for build naming\
+def getDateTime() {
+    return new Date().format('yyyyMMdd_HHmmss')
+}
+
+react {
+    autolinkLibrariesWithApp()
+}
+
+def enableProguardInReleaseBuilds = false
+
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+
+    namespace "com.scaleulearn.aii"
+    defaultConfig {
+        applicationId "com.scaleulearn.aii"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 35
+        versionName "1.34"
+    }
+    
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+        release {
+            storeFile file("my-release-key.jks")
+            storePassword "android"
+            keyAlias "my-key-alias"
+            keyPassword "android"
+        }
+    }
+    
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            signingConfig signingConfigs.release
+            ndk {
+                abiFilters 'arm64-v8a'
+            }
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+    // Custom APK naming with date-time
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def appName = "SuperBoldAI"
+            def buildType = variant.buildType.name
+            def versionName = variant.versionName
+            def dateTime = getDateTime()
+            
+            outputFileName = "${appName}_${buildType}_v${versionName}_${dateTime}.apk"
+        }
+    }
+
+    // 16KB page alignment support for native libraries
+    packagingOptions {
+        jniLibs {
+            excludes += [
+                '**/libcrashlytics.so',
+                '**/libcrashlytics-common.so',
+                '**/libcrashlytics-handler.so',
+                '**/libcrashlytics-trampoline.so'
+            ]
+        }
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+    }
+
+    configurations.all {
+        // Keep Java/Kotlin Crashlytics but drop NDK artifact that currently ships 4KB-page ELF libs.
+        exclude group: 'com.google.firebase', module: 'firebase-crashlytics-ndk'
+        exclude group: 'in.payu', module: 'phonepe-intent'
+        exclude group: 'phonepe.intentsdk.android.release', module: 'IntentSDK'
+    }
+}
+
+dependencies {
+    implementation("com.facebook.react:react-android")
+
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
+}

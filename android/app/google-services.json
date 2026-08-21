@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "710184858324",
+    "project_id": "scaleu-learning",
+    "storage_bucket": "scaleu-learning.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710184858324:android:29613e30abd91f53c54141",
+        "android_client_info": {
+          "package_name": "com.scaleulearn.aii"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHu-xFRCpPoQMTCSpTNtZud4NxtqeioA4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

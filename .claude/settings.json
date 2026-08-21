@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(jq --version)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit log --since=\"2026-06-12\" --oneline --all)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit log --since=\"2026-06-12\" --oneline --all --format=\"%h %ad %s\" --date=short)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit show --stat 26447eb)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit show --stat 35e83e2)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit show --stat 547648b)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit show --stat a56fa61)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit show --stat ffef1b1)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit diff ffef1b1..HEAD -- src/screens/UserNameCaptureScreen.tsx)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit diff ffef1b1..HEAD -- src/screens/ConversationHistoryScreen.tsx src/screens/HistoryTabScreen.tsx)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit diff ffef1b1..HEAD -- src/localization/labels.en.json)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit diff ffef1b1..HEAD -- src/screens/ConversationHistoryScreen.tsx src/screens/HistoryTabScreen.tsx src/screens/TalkingScreen.tsx)",
+      "Bash(git -C /Users/jaymandaliya/Documents/2025/svarTech/liveKit log --oneline --since=\"2026-06-12\" -- src/screens/ConversationHistoryScreen.tsx src/screens/HistoryTabScreen.tsx)",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/Users/jaymandaliya/Documents/2025/svarTech/liveKit/src/localization/labels.all.json','utf8'\\)\\); console.log\\(Object.keys\\(d\\).join\\(', '\\)\\)\")",
+      "Bash(mkdir -p /Users/jaymandaliya/Documents/2025/svarTech/liveKit/android/app/src/main/assets/fonts && cp /Users/jaymandaliya/Documents/2025/svarTech/liveKit/assets/fonts/*.ttf /Users/jaymandaliya/Documents/2025/svarTech/liveKit/android/app/src/main/assets/fonts/ && ls /Users/jaymandaliya/Documents/2025/svarTech/liveKit/android/app/src/main/assets/fonts/)",
+      "Bash(sort -t: -k3 -n)",
+      "Bash(awk -F'fontSize: ' '{print $2}')",
+      "Bash(xargs ls)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 /private/tmp/claude-501/-Users-jaymandaliya-Documents-2025-svarTech-liveKit/10a70eb8-64b6-411c-bf4a-50fa68d074c4/scratchpad/patch.py)"
+    ],
+    "additionalDirectories": [
+      "/Users/jaymandaliya/Documents/2025/svarTech/liveKit/assets/fonts"
+    ]
+  }
+}
