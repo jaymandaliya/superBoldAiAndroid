@@ -27,6 +27,7 @@
 		<string>upi</string>
 		<string>credpay</string>
 		<string>amazonpay</string>
+		<string>paytmmp</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

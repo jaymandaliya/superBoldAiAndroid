@@ -43,6 +43,19 @@ export interface OnboardingProfile {
   updatedAt: string;
 }
 
+export type OnboardingAudioKey = 'name' | 'age' | 'skill' | 'reason';
+
+export interface AudioCatalogEntry {
+  category: string;
+  key: string;
+  url: string;
+  text: string;
+  locale: string;
+  voice: string;
+  content_type: string;
+  bytes: number;
+}
+
 // Payment tier types
 export type PaymentTierKey =
   | 'levels_1_5'

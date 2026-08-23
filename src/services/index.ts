@@ -4,3 +4,7 @@ export * from './learningSessionService';
 export * from './userLimitsService';
 export * from './authService';
 export * from './onboardingService';
+export * from './appSettingsService';
+export * from './audioCatalogService';
+export * from './companionPricingTypes';
+export * from './companionPricingService';

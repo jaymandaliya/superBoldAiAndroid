@@ -17,6 +17,8 @@ import {
   LoadingScreen,
   ContactSupportScreen,
   OnboardingLanguageModal,
+  CashfreeSubscriptionScreen,
+  PaywallScreen,
 } from '../screens';
 import { UserNameCaptureScreen } from '../screens/UserNameCaptureScreen';
 import { PathChoiceScreen } from '../screens/PathChoiceScreen';
@@ -167,6 +169,23 @@ export function AppNavigator({
           component={OnboardingLanguageModal}
           options={{
             presentation: 'transparentModal',
+            animation: 'slide_from_bottom',
+            gestureEnabled: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="CashfreeSubscription"
+          component={CashfreeSubscriptionScreen}
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
+
+        <Stack.Screen
+          name="Paywall"
+          component={PaywallScreen}
+          options={{
             animation: 'slide_from_bottom',
             gestureEnabled: false,
           }}

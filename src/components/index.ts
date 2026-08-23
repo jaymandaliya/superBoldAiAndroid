@@ -1,5 +1,10 @@
 export { WebViewModal } from './WebViewModal';
 export { LanguageSelector } from './LanguageSelector';
+export { LanguageConfirmSheet } from './LanguageConfirmSheet';
 export { CountryCodeSelector } from './CountryCodeSelector';
 export { OTPInput } from './OTPInput';
 export { TranscriptionHandler } from './TranscriptionHandler';
+export { SoftUpdateModal } from './SoftUpdateModal';
+export { NotificationPermissionModal } from './NotificationPermissionModal';
+export { OnboardingProgressBar } from './OnboardingProgressBar';
+export { VoiceoverAvatar } from './VoiceoverAvatar';

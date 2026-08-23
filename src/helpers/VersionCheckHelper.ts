@@ -1,4 +1,7 @@
-export interface ForceUpdateInfo {
+export type UpdateTier = 'hard' | 'soft';
+
+export interface AppVersionCheckResult {
+  tier: UpdateTier;
   minimumVersion: string;
   latestVersion: string;
   updateUrl?: string;
@@ -10,60 +13,56 @@ interface VersionCheckResponse {
   minimum_version: string;
   latest_version: string;
   force_update: boolean;
+  soft_update: boolean;
   update_url?: string;
   message?: string;
 }
 
-const normalizeVersion = (version: string): number[] => {
-  const parts = (version || '0').split('.').map((segment) => {
-    const digits = segment.replace(/[^0-9]/g, '');
-    return digits ? Number(digits) : 0;
-  });
-  while (parts.length < 3) {
-    parts.push(0);
-  }
-  return parts.slice(0, 3);
-};
-
-const isVersionLowerThan = (current: string, minimum: string): boolean => {
-  const currentParts = normalizeVersion(current);
-  const minimumParts = normalizeVersion(minimum);
-
-  for (let index = 0; index < Math.max(currentParts.length, minimumParts.length); index += 1) {
-    const currentPart = currentParts[index] ?? 0;
-    const minimumPart = minimumParts[index] ?? 0;
-    if (currentPart < minimumPart) return true;
-    if (currentPart > minimumPart) return false;
-  }
-
-  return false;
-};
-
-export const checkForceUpdate = async (
+/**
+ * Checks the backend-controlled version gate for this platform.
+ * The backend owns the version comparison (current vs. minimum/latest) and any
+ * manual kill-switch — the client just trusts force_update / soft_update as sent.
+ * Returns null when neither flag is set — app is current, no popup needed.
+ * Returns 'hard' when force_update is true (blocking, non-dismissible).
+ * Returns 'soft' when soft_update is true (dismissible — see AuthStorage
+ * dismissed-update-version tracking).
+ */
+export const checkAppVersion = async (
   baseUrl: string,
   platform: string,
   appVersion: string
-): Promise<ForceUpdateInfo | null> => {
+): Promise<AppVersionCheckResult | null> => {
   const response = await fetch(
     `${baseUrl}/api/app-version?platform=${platform}&version=${encodeURIComponent(appVersion)}`
   );
-console.log(`[VersionCheckHelper] Checking for updates: ${response.status} ${response.statusText}`); // Debug log 
+
   if (!response.ok) {
     return null;
   }
 
   const versionData: VersionCheckResponse = await response.json();
   const minimumVersion = versionData.minimum_version || '0.0.1';
-  const forceUpdate = Boolean(versionData.force_update) || isVersionLowerThan(appVersion, minimumVersion);
+  const latestVersion = versionData.latest_version || minimumVersion;
 
-  if (!forceUpdate) {
-    return null;
+  if (versionData.force_update) {
+    return {
+      tier: 'hard',
+      minimumVersion,
+      latestVersion,
+      updateUrl: versionData.update_url,
+      message: versionData.message || `Please update to version ${minimumVersion} or newer.`,
+    };
   }
 
-  return {
-    minimumVersion,
-    latestVersion: versionData.latest_version || minimumVersion,
-    updateUrl: versionData.update_url,
-    message: versionData.message || `Please update to version ${minimumVersion} or newer.`,
-  };
+  if (versionData.soft_update) {
+    return {
+      tier: 'soft',
+      minimumVersion,
+      latestVersion,
+      updateUrl: versionData.update_url,
+      message: versionData.message || `Version ${latestVersion} is available.`,
+    };
+  }
+
+  return null;
 };

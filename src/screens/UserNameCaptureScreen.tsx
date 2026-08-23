@@ -24,11 +24,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, FONTS, AUTH_URL, LEARNING_URL, BACKEND_URL, YOUR_COMPUTER_IP, CONNECTION_TIMEOUT } from '../constants';
 import { LANGUAGES } from '../constants/languages';
-import { CrashlyticsHelper, AuthStorage, NetworkHelper } from '../helpers';
+import { CrashlyticsHelper, AuthStorage, NetworkHelper, hasPaidAccess } from '../helpers';
 import { useI18n } from '../localization';
 import { getLocalizedOnboardingOptions } from '../localization/onboardingTranslations';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { OnboardingGoal, OnboardingSkillLevel } from '../types';
+import { VoiceoverAvatar } from '../components';
+import { useOnboardingClips, useVoiceoverPlayback } from '../hooks';
+import { OnboardingAudioKey } from '../types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -153,6 +156,21 @@ export function UserNameCaptureScreen({ navigation, route }: Props) {
   const [loading,        setLoading]        = useState(false);
   const [activeStep,     setActiveStep]     = useState<number>(initialStep ?? 1);
   const [isReady,        setIsReady]        = useState(false);
+
+  const nativeLanguageForAudio = language || existingLearning?.native_language || 'en';
+  const onboardingAudio = useOnboardingClips(nativeLanguageForAudio);
+  const { isPlaying, playSequence } = useVoiceoverPlayback();
+
+  const playStepAudio = (step: number) => {
+    const key: OnboardingAudioKey | null = step === 1 ? 'name' : step === 2 ? 'reason' : step === 3 ? 'skill' : null;
+    const clip = key ? onboardingAudio[key] : undefined;
+    if (clip) playSequence([clip.url]);
+  };
+
+  useEffect(() => {
+    playStepAudio(activeStep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStep, onboardingAudio]);
 
   // Prevent ghost touches from the previous screen firing the CTA
   useFocusEffect(
@@ -369,6 +387,17 @@ export function UserNameCaptureScreen({ navigation, route }: Props) {
 
       const updatedUser = { ...user, name: trimmedName };
 
+      // Paywall is the last step of onboarding — shown here, once profile setup
+      // is actually complete, not mid-flow. Paid users fall through to the exact
+      // same room-connect/MainTabs logic as before (matches iOS's useFinalizeOnboarding).
+      if (!isChatPath && !hasPaidAccess(existingLearning)) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Paywall', params: { user: updatedUser, existingLearning, name: trimmedName, nextStep: 'LanguageSelection' } }],
+        });
+        return;
+      }
+
       // Try to connect directly to room if we have a full learning record
       if (existingLearning?.id && existingLearning.native_language && existingLearning.target_language) {
         try {
@@ -526,7 +555,7 @@ export function UserNameCaptureScreen({ navigation, route }: Props) {
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
           {/* ── Back Button ───────────────────────────────────────────────── */}
@@ -644,8 +673,11 @@ export function UserNameCaptureScreen({ navigation, route }: Props) {
               {/* ══ STEP 1 — Name ════════════════════════════════════════════ */}
               {activeStep === 1 && (
                 <View style={styles.stepContent}>
-                  {/* Layered hero — hidden when keyboard open so age group stays visible */}
-               
+                  <VoiceoverAvatar
+                    visible={Boolean(onboardingAudio.name)}
+                    isPlaying={isPlaying}
+                    onReplay={() => playStepAudio(1)}
+                  />
 
                   <Text style={styles.eyebrow}>{t('username_eyebrow')}</Text>
                   <Text style={styles.stepTitle}>{t('username_name_card_title')}</Text>
@@ -758,6 +790,12 @@ export function UserNameCaptureScreen({ navigation, route }: Props) {
                     <Text style={styles.backBtnText}>{t('username_step_label_name')}</Text>
                   </TouchableOpacity>
 
+                  <VoiceoverAvatar
+                    visible={Boolean(onboardingAudio.reason)}
+                    isPlaying={isPlaying}
+                    onReplay={() => playStepAudio(2)}
+                  />
+
                   <Text style={styles.stepTitle}>{t('username_why_learning_title', { language: targetLanguageName })}</Text>
                   <Text style={styles.stepSubtitle}>{t('username_why_learning_subtitle')}</Text>
 
@@ -858,6 +896,12 @@ export function UserNameCaptureScreen({ navigation, route }: Props) {
                       {t('username_step_label_goal')}
                     </Text>
                   </TouchableOpacity>
+
+                  <VoiceoverAvatar
+                    visible={Boolean(onboardingAudio.skill)}
+                    isPlaying={isPlaying}
+                    onReplay={() => playStepAudio(3)}
+                  />
 
                   <Text style={styles.stepTitle}>{t('username_skill_level_title_with_language', { language: targetLanguageName })}</Text>
                   <Text style={styles.stepSubtitle}>{t('username_skill_level_subtitle')}</Text>

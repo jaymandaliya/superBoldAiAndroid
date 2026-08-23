@@ -21,7 +21,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
-import { subscribeYearlyPremium } from '../services';
+import { subscribeYearlyPremium, fetchAppSettings } from '../services';
 import { usePayUCheckout, getPayUBizSdk } from '../payment/usePayUCheckout';
 import { buildSubscriptionYearlyCheckoutParams } from '../payment/payuParams';
 import { PAYU_SUBSCRIPTION_PRODUCT } from '../payment/payuConfig';
@@ -52,8 +52,14 @@ import { getLocalizedOnboardingOptions } from '../localization/onboardingTransla
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-const TARGET_LANGUAGE_CODES = ['en', 'de', 'fr', 'es', 'nl', 'sv'];
-const NATIVE_LANGUAGE_CODES = ['hi', 'gu', 'mr', 'bn', 'ta', 'te', 'en', 'kn', 'ml', 'pa', 'ur'];
+const TARGET_LANGUAGE_CODES = ['en', 'de', 'fr', 'es', 'nl', 'sv', 'hi', 'zh', 'ja', 'ko'];
+const NATIVE_LANGUAGE_CODES = [
+  'hi', 'gu', 'mr', 'bn', 'ta', 'te', 'en', 'kn', 'ml', 'pa', 'ur',
+  // Europe
+  'de', 'fr', 'ru', 'pt', 'it', 'pl', 'uk', 'tr',
+  // Asia
+  'zh', 'ja', 'ko', 'ar', 'id', 'vi', 'th',
+];
 const TARGET_LANGUAGES = TARGET_LANGUAGE_CODES
   .map((code) => LANGUAGES.find((lang) => lang.code === code))
   .filter((lang): lang is Language => Boolean(lang));
@@ -250,6 +256,7 @@ function LearningSessionCard({
   isLoading,
   isPremium,
   onChangeLanguage,
+  onChangeNativeLanguage,
   showNewBadge = false,
   isFullWidth = false,
 }: {
@@ -259,6 +266,7 @@ function LearningSessionCard({
   isLoading: boolean;
   isPremium: boolean;
   onChangeLanguage?: () => void;
+  onChangeNativeLanguage?: () => void;
   showNewBadge?: boolean;
   isFullWidth?: boolean;
 }) {
@@ -270,19 +278,19 @@ function LearningSessionCard({
   const pct = getCompletedPercentage(learning.current_level ?? 1);
   const hasStats = learning.total_sessions > 0;
   const isLanguageLocked = (learning.current_level ?? 0) > 1;
-  const levelOrTrialLabel = hasPaidAccess(learning) ? `Level ${displayLevel}` : 'Free Trial';
+  const levelOrTrialLabel = hasPaidAccess(learning) ? t('room_header_level', { level: displayLevel }) : t('label_free_trial');
   const planLabel = hasPaidAccess(learning) ? getPlanLabel(learning) : '';
   const canEditLanguage = !isPremium && !isLanguageLocked;
 
+  const completedLevels = Math.max(0, displayLevel - 1);
+
   return (
     <View style={[styles.lsCard, isFullWidth && styles.lsCardFull]}>
-      {/* Icon + title in same row, plan badge on right */}
+      {/* Top row: LEARNING badge, plan/Full Course badge on the right */}
       <View style={styles.lsCardTopRow}>
-        <View style={styles.lsCardIconTitleRow}>
-          <View style={styles.lsCardIconBadge}>
-            <Ionicons name="school" size={18} color={COLORS.primary} />
-          </View>
-          <Text style={styles.lsCardTitle} numberOfLines={1}>{t('home_card_learn_title')}</Text>
+        <View style={styles.lsCardBadgePill}>
+          <Ionicons name="school" size={12} color={COLORS.primary} />
+          <Text style={styles.lsCardBadgePillText}>{t('home_card_badge_learning')}</Text>
         </View>
         {planLabel ? (
           <View style={styles.lsCardLevelBadge}>
@@ -291,31 +299,67 @@ function LearningSessionCard({
         ) : null}
       </View>
 
-      {/* Subtitle: level pill + language pair */}
+      {/* Heading */}
+      <Text style={styles.lsCardTitle} numberOfLines={2}>{t('home_card_learn_title')}</Text>
+
+      {/* Subtitle: level pill + language pair — native and target are each independently editable */}
       {nativeLang && targetLang ? (
-        <TouchableOpacity
-          activeOpacity={canEditLanguage ? 0.7 : 1}
-          onPress={() => { if (canEditLanguage && onChangeLanguage) onChangeLanguage(); }}
-        >
-          <View style={styles.lsCardSubtitleRow}>
+        <>
+          <View style={styles.lsCardTrialRow}>
             <View style={styles.lsCardLevelPill}>
               <Text style={styles.lsCardLevelPillText}>{levelOrTrialLabel}</Text>
             </View>
-            <Text style={styles.lsCardSubtitleText} numberOfLines={1}>
-              {nativeLang.flag} {nativeLang.name} → {targetLang.flag} {targetLang.name}
-              {canEditLanguage ? ' ✎' : ''}
-            </Text>
           </View>
-        </TouchableOpacity>
+
+          <View style={styles.lsCardSubtitleRow}>
+          <TouchableOpacity
+            activeOpacity={canEditLanguage ? 0.7 : 1}
+            onPress={() => { if (canEditLanguage && onChangeNativeLanguage) onChangeNativeLanguage(); }}
+            style={styles.lsCardLangSegment}
+          >
+            <Text style={styles.lsCardSubtitleText} numberOfLines={1}>
+              {nativeLang.flag} {nativeLang.name}
+            </Text>
+            {canEditLanguage && (
+              <View style={styles.lsCardEditIconWrap}>
+                <Ionicons name="pencil" size={13} color={COLORS.primaryLight} />
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <Ionicons name="arrow-forward" size={13} color={COLORS.textMuted} />
+
+          <TouchableOpacity
+            activeOpacity={canEditLanguage ? 0.7 : 1}
+            onPress={() => { if (canEditLanguage && onChangeLanguage) onChangeLanguage(); }}
+            style={styles.lsCardLangSegment}
+          >
+            <Text style={styles.lsCardSubtitleText} numberOfLines={1}>
+              {targetLang.flag} {targetLang.name}
+            </Text>
+            {canEditLanguage && (
+              <View style={styles.lsCardEditIconWrap}>
+                <Ionicons name="pencil" size={13} color={COLORS.primaryLight} />
+              </View>
+            )}
+          </TouchableOpacity>
+          </View>
+        </>
       ) : (
         <Text style={styles.lsCardSubtitleText}>{'AI ट्यूटर के साथ भाषा सीखें'}</Text>
       )}
 
-      {/* Progress bar */}
-      {!completed && pct > 0 && (
-        <View style={styles.lsCardProgressBar}>
-          <View style={[styles.lsCardProgressFill, { width: `${pct}%` as any }]} />
-        </View>
+      {/* Progress info + bar */}
+      {!completed && (
+        <>
+          <View style={styles.lsCardProgressInfoRow}>
+            <Text style={styles.lsCardProgressInfoText}>{completedLevels}/{TOTAL_LEVELS} {t('home_card_lessons_label')}</Text>
+            <Text style={styles.lsCardProgressPercent}>{pct}%</Text>
+          </View>
+          <View style={styles.lsCardProgressBar}>
+            <View style={[styles.lsCardProgressFill, { width: `${pct}%` as any }]} />
+          </View>
+        </>
       )}
 
       {/* Compact stats */}
@@ -438,6 +482,9 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
 
   const [showNativeSelector, setShowNativeSelector] = useState(false);
   const [showTargetSelector, setShowTargetSelector] = useState(false);
+  const [editingLanguageLearningId, setEditingLanguageLearningId] = useState<string | null>(null);
+  const [editingNativeLanguageLearningId, setEditingNativeLanguageLearningId] = useState<string | null>(null);
+  const [savingLanguage, setSavingLanguage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -445,6 +492,8 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
   const [showPlansCTA, setShowPlansCTA] = useState(false);
   const [userPath, setUserPath] = useState<UserPath | null>(null);
   const [pendingLearningSetup, setPendingLearningSetup] = useState(false);
+  // Default true so the card doesn't flash-hide while the flag is still loading.
+  const [isCompanionFlowEnabled, setIsCompanionFlowEnabled] = useState(true);
 
   // ── Add Language modal ────────────────────────────────────────────────────
   const [storedAge, setStoredAge] = useState<number | null>(user.age ?? null);
@@ -480,6 +529,14 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
   useEffect(() => {
     addLangScrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [addLangStep]);
+
+  useEffect(() => {
+    fetchAppSettings()
+      .then(({ ok, settings }) => {
+        if (ok && settings) setIsCompanionFlowEnabled(settings.isCompanionFlow);
+      })
+      .catch((error) => CrashlyticsHelper.recordError(error as Error, 'fetchAppSettings:languageSelection'));
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -714,9 +771,56 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleNativeLanguageSelect = (language: Language) => {
+  const handleNativeLanguageSelect = async (language: Language) => {
     if (targetLanguage && language.code === targetLanguage.code) {
       Toast.show(t('language_selection_same_language_toast'), Toast.SHORT);
+      return;
+    }
+
+    // Editing an existing trial learning's native language (pencil icon) — persist to the
+    // backend and update local state directly instead of going through onboarding.
+    if (editingNativeLanguageLearningId) {
+      const learningId = editingNativeLanguageLearningId;
+      setShowNativeSelector(false);
+      setEditingNativeLanguageLearningId(null);
+      setSavingLanguage(true);
+      try {
+        const token = await AuthStorage.getToken();
+        if (!token) throw new Error('No auth token');
+
+        const res = await fetch(`${LEARNING_URL}/${learningId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ native_language: language.code }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || t('language_selection_update_language_failed_generic'));
+        }
+
+        const persistedNative = data.learning?.native_language ?? data.native_language;
+        if (persistedNative && persistedNative !== language.code) {
+          CrashlyticsHelper.log(
+            `native_language PUT did not persist: sent=${language.code} got=${persistedNative}`
+          );
+          throw new Error('Language change did not save on the server. Please contact support.');
+        }
+
+        setLocalLearnings(prev =>
+          prev.map(l => (String(l.id) === learningId ? { ...l, native_language: language.code } : l))
+        );
+        setLocalLearning(prev =>
+          prev && String(prev.id) === learningId ? { ...prev, native_language: language.code } : prev
+        );
+        setNativeLanguage(language);
+        void setLanguage(language.code);
+        Toast.show(t('language_selection_language_updated_toast', { language: language.name }), Toast.SHORT);
+      } catch (e: any) {
+        CrashlyticsHelper.recordError(e as Error, 'handleNativeLanguageSelect_editExisting');
+        Toast.show(e.message || t('language_selection_update_language_failed_toast'), Toast.SHORT);
+      } finally {
+        setSavingLanguage(false);
+      }
       return;
     }
 
@@ -731,9 +835,55 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleTargetLanguageSelect = (language: Language) => {
+  const handleTargetLanguageSelect = async (language: Language) => {
     if (nativeLanguage && language.code === nativeLanguage.code) {
       Toast.show(t('language_selection_same_language_toast'), Toast.SHORT);
+      return;
+    }
+
+    // Editing an existing trial learning's language (pencil icon) — persist to the
+    // backend and update local state directly instead of going through onboarding.
+    if (editingLanguageLearningId) {
+      const learningId = editingLanguageLearningId;
+      setShowTargetSelector(false);
+      setEditingLanguageLearningId(null);
+      setSavingLanguage(true);
+      try {
+        const token = await AuthStorage.getToken();
+        if (!token) throw new Error('No auth token');
+
+        const res = await fetch(`${LEARNING_URL}/${learningId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ target_language: language.code }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || t('language_selection_update_language_failed_generic'));
+        }
+
+        const persistedTarget = data.learning?.target_language ?? data.target_language;
+        if (persistedTarget && persistedTarget !== language.code) {
+          CrashlyticsHelper.log(
+            `target_language PUT did not persist: sent=${language.code} got=${persistedTarget}`
+          );
+          throw new Error('Language change did not save on the server. Please contact support.');
+        }
+
+        setLocalLearnings(prev =>
+          prev.map(l => (String(l.id) === learningId ? { ...l, target_language: language.code } : l))
+        );
+        setLocalLearning(prev =>
+          prev && String(prev.id) === learningId ? { ...prev, target_language: language.code } : prev
+        );
+        setTargetLanguage(language);
+        Toast.show(t('language_selection_language_updated_toast', { language: language.name }), Toast.SHORT);
+      } catch (e: any) {
+        CrashlyticsHelper.recordError(e as Error, 'handleTargetLanguageSelect_editExisting');
+        Toast.show(e.message || t('language_selection_update_language_failed_toast'), Toast.SHORT);
+      } finally {
+        setSavingLanguage(false);
+      }
       return;
     }
 
@@ -1344,16 +1494,23 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
 
         <LanguageSelector
           visible={showNativeSelector}
-          onClose={() => setShowNativeSelector(false)}
+          onClose={() => {
+            setShowNativeSelector(false);
+            setEditingNativeLanguageLearningId(null);
+          }}
           onSelect={handleNativeLanguageSelect}
           title={t('language_selection_select_native_modal_title')}
+          subtitle={t('language_selection_which_language_speak_subtitle')}
           selectedLanguage={nativeLanguage}
           languages={NATIVE_LANGUAGES}
         />
 
         <LanguageSelector
           visible={showTargetSelector}
-          onClose={() => setShowTargetSelector(false)}
+          onClose={() => {
+            setShowTargetSelector(false);
+            setEditingLanguageLearningId(null);
+          }}
           onSelect={handleTargetLanguageSelect}
           title={t('language_selection_select_target_modal_title')}
           selectedLanguage={targetLanguage}
@@ -1417,7 +1574,7 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                     <View style={styles.learnZoneIconBadge}>
                       <Ionicons name="school-outline" size={13} color={COLORS.primary} />
                     </View>
-                    <Text style={styles.learnZoneLabel}>Learning</Text>
+                    <Text style={styles.learnZoneLabel}>{t('home_learning_zone_label')}</Text>
                   </View>
                   <ScrollView
                     horizontal
@@ -1431,9 +1588,16 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                         learning={ls}
                         onStart={handleStartLearningSession}
                         onHistory={() => navigateToHistory(String(ls.id))}
-                        isLoading={loading}
+                        isLoading={loading || savingLanguage}
                         isPremium={isPremiumUser}
-                        onChangeLanguage={() => setShowTargetSelector(true)}
+                        onChangeLanguage={() => {
+                          setEditingLanguageLearningId(String(ls.id));
+                          setShowTargetSelector(true);
+                        }}
+                        onChangeNativeLanguage={() => {
+                          setEditingNativeLanguageLearningId(String(ls.id));
+                          setShowNativeSelector(true);
+                        }}
                         isFullWidth={localLearnings.length === 1}
                       />
                     ))}
@@ -1446,40 +1610,44 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                   )}
                 </View>
 
-                {/* AI 1:1 zone */}
-                <View style={styles.aiZone}>
-                  <View style={styles.zoneHeader}>
-                    <View style={styles.aiZoneIconBadge}>
-                      <Ionicons name="sparkles-outline" size={13} color={COLORS.primary} />
+                {/* AI 1:1 zone — remotely gated by GET /api/app-settings.isCompanionFlow */}
+                {isCompanionFlowEnabled && (
+                  <View style={styles.aiZone}>
+                    <View style={styles.zoneHeader}>
+                      <View style={styles.aiZoneIconBadge}>
+                        <Ionicons name="sparkles-outline" size={13} color={COLORS.primary} />
+                      </View>
+                      <Text style={styles.aiZoneLabel}>{t('home_ai_zone_label')}</Text>
                     </View>
-                    <Text style={styles.aiZoneLabel}>{t('home_ai_zone_label')}</Text>
+                    <AIChatCard
+                      onPress={() => navigation.navigate('TalkingSession', { user })}
+                      buttonLabel={t('home_btn_start_chat')}
+                      buttonIcon="mic-outline"
+                    />
                   </View>
-                  <AIChatCard
-                    onPress={() => navigation.navigate('TalkingSession', { user })}
-                    buttonLabel={t('home_btn_start_chat')}
-                    buttonIcon="mic-outline"
-                  />
-                </View>
+                )}
               </>
             )}
 
             {/* ── State B: Chat-first ────────────────────────────────────── */}
             {userPath === 'chat' && (
               <>
-                {/* AI 1:1 zone */}
-                <View style={styles.aiZone}>
-                  <View style={styles.zoneHeader}>
-                    <View style={styles.aiZoneIconBadge}>
-                      <Ionicons name="sparkles-outline" size={13} color={COLORS.primary} />
+                {/* AI 1:1 zone — remotely gated by GET /api/app-settings.isCompanionFlow */}
+                {isCompanionFlowEnabled && (
+                  <View style={styles.aiZone}>
+                    <View style={styles.zoneHeader}>
+                      <View style={styles.aiZoneIconBadge}>
+                        <Ionicons name="sparkles-outline" size={13} color={COLORS.primary} />
+                      </View>
+                      <Text style={styles.aiZoneLabel}>{t('home_ai_zone_label')}</Text>
                     </View>
-                    <Text style={styles.aiZoneLabel}>{t('home_ai_zone_label')}</Text>
+                    <AIChatCard
+                      onPress={() => navigation.navigate('TalkingSession', { user })}
+                      buttonLabel={t('home_btn_start_new_chat')}
+                      buttonIcon="mic"
+                    />
                   </View>
-                  <AIChatCard
-                    onPress={() => navigation.navigate('TalkingSession', { user })}
-                    buttonLabel={t('home_btn_start_new_chat')}
-                    buttonIcon="mic"
-                  />
-                </View>
+                )}
 
                 {/* Orange Learning zone */}
                 <View style={styles.learnZone}>
@@ -1487,7 +1655,7 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                     <View style={styles.learnZoneIconBadge}>
                       <Ionicons name="school-outline" size={13} color={COLORS.primary} />
                     </View>
-                    <Text style={styles.learnZoneLabel}>Learning</Text>
+                    <Text style={styles.learnZoneLabel}>{t('home_learning_zone_label')}</Text>
                   </View>
                   <ScrollView
                     horizontal
@@ -1501,9 +1669,16 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                         learning={ls}
                         onStart={handleStartLearningSession}
                         onHistory={() => navigateToHistory(String(ls.id))}
-                        isLoading={loading}
+                        isLoading={loading || savingLanguage}
                         isPremium={isPremiumUser}
-                        onChangeLanguage={() => setShowTargetSelector(true)}
+                        onChangeLanguage={() => {
+                          setEditingLanguageLearningId(String(ls.id));
+                          setShowTargetSelector(true);
+                        }}
+                        onChangeNativeLanguage={() => {
+                          setEditingNativeLanguageLearningId(String(ls.id));
+                          setShowNativeSelector(true);
+                        }}
                         showNewBadge={false}
                         isFullWidth={localLearnings.length === 1}
                       />
@@ -3143,22 +3318,22 @@ pathHelperText: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 16,
   },
-  lsCardIconBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,91,46,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  lsCardIconTitleRow: {
+  lsCardBadgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    marginRight: 8,
+    backgroundColor: 'rgba(255,91,46,0.12)',
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    gap: 5,
+  },
+  lsCardBadgePillText: {
+    fontSize: 11,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
+    letterSpacing: 0.6,
   },
   lsCardLevelBadge: {
     backgroundColor: 'rgba(255,91,46,0.15)',
@@ -3175,45 +3350,82 @@ pathHelperText: {
     color: COLORS.primary,
   },
   lsCardTitle: {
-    fontSize: 17,
+    fontSize: 20,
     fontFamily: FONTS.bold,
     color: COLORS.text,
-    flexShrink: 1,
+    lineHeight: 27,
+    marginBottom: 16,
+  },
+  lsCardTrialRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   lsCardSubtitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     flexWrap: 'wrap',
-    marginBottom: 4,
+    marginBottom: 18,
+  },
+  lsCardLangSegment: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
   },
   lsCardLevelPill: {
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
   lsCardLevelPillText: {
     fontSize: 13,
-    fontFamily: FONTS.medium,
+    fontFamily: FONTS.semiBold,
     color: COLORS.textSecondary,
   },
   lsCardSubtitleText: {
-    fontSize: 14,
-    fontFamily: FONTS.regular,
-    color: COLORS.textMuted,
-    flex: 1,
+    fontSize: 15,
+    fontFamily: FONTS.medium,
+    color: COLORS.text,
+    flexShrink: 1,
   },
-  lsCardProgressBar: {
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    overflow: 'hidden',
+  lsCardEditIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,91,46,0.14)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  lsCardProgressInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
+  lsCardProgressInfoText: {
+    fontSize: 13,
+    fontFamily: FONTS.medium,
+    color: COLORS.textMuted,
+  },
+  lsCardProgressPercent: {
+    fontSize: 13,
+    fontFamily: FONTS.bold,
+    color: COLORS.primary,
+  },
+  lsCardProgressBar: {
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
   lsCardProgressFill: {
-    height: 3,
-    borderRadius: 1.5,
+    height: 7,
+    borderRadius: 4,
     backgroundColor: COLORS.primary,
   },
   lsCardStatsRow: {

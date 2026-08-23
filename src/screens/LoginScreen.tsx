@@ -462,8 +462,8 @@ export function LoginScreen({ navigation }: Props) {
       </Animated.View>
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.authContainer}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >

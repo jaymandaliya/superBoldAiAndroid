@@ -10,7 +10,7 @@ export const YOUR_COMPUTER_IP = '192.168.1.5';  // Your local IP (for dev only)
 export const IS_REAL_DEVICE = true;
 
 // Production URL
-const PRODUCTION_URL = 'https://learning-backend.scaleu.ai';
+const PRODUCTION_URL = 'https://learning-backend-staging.scaleu.ai';
 
 // Automatically switch between dev and pro duction
 export const BASE_URL = IS_DEVELOPMENT
@@ -33,8 +33,20 @@ export const LEARNING_SESSION_URL = `${BASE_URL}/learning`;
 export const COMPANION_QUOTA_URL = `${BASE_URL}/api/companion/quota`;
 export const COMPANION_SESSION_START_URL = `${BASE_URL}/api/companion/session/start`;
 export const COMPANION_SESSION_END_URL = `${BASE_URL}/api/companion/session/end`;
+export const COMPANION_PRICING_URL = `${BASE_URL}/api/companion/pricing`;
+export const COMPANION_PURCHASE_URL = `${BASE_URL}/api/companion/purchase`;
 
+// Remote feature flags (e.g. isCompanionFlow — whether the 1:1 companion chat option is shown)
+export const APP_SETTINGS_URL = `${BASE_URL}/api/app-settings`;
 
+// Onboarding voice-over recordings, keyed by native_language (see Audio Catalog API)
+export const AUDIO_CATALOG_URL = `${BASE_URL}/api/audio`;
+
+// Only these have recordings today — guard calls so we don't hit the API for the
+// app's other ~24 supported languages and get back an empty/422 response.
+export const AUDIO_CATALOG_SUPPORTED_LANGUAGES = new Set([
+  'hi', 'gu', 'mr', 'bn', 'ta', 'te', 'kn', 'ml', 'pa', 'ur', 'en',
+]);
 
 
 // Legal URLs

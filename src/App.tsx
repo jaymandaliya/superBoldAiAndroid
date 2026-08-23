@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PermissionsAndroid, Platform, Linking, TouchableOpacity } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { AuthorizationStatus } from '@notifee/react-native';
 import { AppNavigator } from './navigation';
 import { RootStackParamList } from './navigation/types';
 import { AUTH_URL, BASE_URL } from './constants';
@@ -9,10 +10,11 @@ import {
   NetworkHelper,
   AuthStorage,
   NotificationHelper,
-  checkForceUpdate,
-  ForceUpdateInfo,
+  checkAppVersion,
+  AppVersionCheckResult,
   AudioHelper,
 } from './helpers';
+import { SoftUpdateModal, NotificationPermissionModal } from './components';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView, View, ActivityIndicator, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -20,7 +22,21 @@ import { COLORS, FONTS } from './constants';
 import { User, Learning } from './types';
 import { I18nProvider } from './localization';
 
+// Same version source the backend's /api/app-version compares against build.gradle's
+// versionName for the Play Store listing — package.json's version must be bumped in
+// lockstep with versionName on every release or this check false-positives (it did:
+// package.json was stuck at 1.0.0 while versionName had moved to 1.34).
 const APP_VERSION = require('../package.json').version as string;
+
+const IOS_STORE_URL = 'https://apps.apple.com/';
+const ANDROID_STORE_URL = 'https://play.google.com/store/apps/details?id=com.scaleulearn.aii&hl=en_IN';
+
+const openStoreUrl = (updateUrl?: string) => {
+  const fallbackUrl = Platform.OS === 'ios' ? IOS_STORE_URL : ANDROID_STORE_URL;
+  Linking.openURL(updateUrl || fallbackUrl).catch((error) => {
+    CrashlyticsHelper.recordError(error as Error, 'openUpdateUrl');
+  });
+};
 
 interface InitialRouteData {
   routeName: keyof RootStackParamList;
@@ -35,7 +51,10 @@ export default function App() {
     routeName: 'Login',
   });
   const [isConnected, setIsConnected] = useState(true);
-  const [forceUpdateInfo, setForceUpdateInfo] = useState<ForceUpdateInfo | null>(null);
+  const [hardUpdateInfo, setHardUpdateInfo] = useState<AppVersionCheckResult | null>(null);
+  const [softUpdateInfo, setSoftUpdateInfo] = useState<AppVersionCheckResult | null>(null);
+  const [showNotificationPermissionModal, setShowNotificationPermissionModal] = useState(false);
+  const [notificationPermissionAlreadyDenied, setNotificationPermissionAlreadyDenied] = useState(false);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
@@ -97,14 +116,20 @@ export default function App() {
       }
 
       try {
-        const updateInfo = await checkForceUpdate(BASE_URL, Platform.OS, APP_VERSION);
-        if (updateInfo) {
+        const updateInfo = await checkAppVersion(BASE_URL, Platform.OS, APP_VERSION);
+        if (updateInfo?.tier === 'hard') {
           CrashlyticsHelper.log(
-            `Force update required. current=${APP_VERSION}, min=${updateInfo.minimumVersion}`
+            `Hard update required. current=${APP_VERSION}, min=${updateInfo.minimumVersion}`
           );
-          setForceUpdateInfo(updateInfo);
+          setHardUpdateInfo(updateInfo);
           setIsInitializing(false);
           return;
+        }
+        if (updateInfo?.tier === 'soft') {
+          const dismissedVersion = await AuthStorage.getDismissedUpdateVersion();
+          if (dismissedVersion !== updateInfo.latestVersion) {
+            setSoftUpdateInfo(updateInfo);
+          }
         }
       } catch (error) {
         CrashlyticsHelper.recordError(error as Error, 'versionCheck');
@@ -186,6 +211,51 @@ export default function App() {
       setInitialRouteData({ routeName: 'Login' });
     } finally {
       setIsInitializing(false);
+      checkNotificationPermission();
+    }
+  };
+
+  /**
+   * Shown on every cold start once the user still hasn't granted notification
+   * permission — but NOT the very first time. The first ask stays the existing
+   * silent native prompt (NotificationHelper.initialize() after login); this
+   * modal only kicks in on a later app open if that first ask was declined
+   * (or otherwise still isn't granted), since re-prompting natively isn't
+   * possible at that point and the user needs a nudge toward Settings.
+   */
+  const checkNotificationPermission = async () => {
+    try {
+      const alreadyAttempted = await NotificationHelper.hasAttemptedPermissionRequest();
+      if (!alreadyAttempted) {
+        // Never asked yet this install — let the existing silent post-login
+        // request run its course, don't double up with this modal.
+        setShowNotificationPermissionModal(false);
+        return;
+      }
+
+      const status = await NotificationHelper.getPermissionStatus();
+      const granted = status === AuthorizationStatus.AUTHORIZED || status === AuthorizationStatus.PROVISIONAL;
+      if (granted) {
+        setShowNotificationPermissionModal(false);
+        return;
+      }
+
+      setNotificationPermissionAlreadyDenied(true);
+      setShowNotificationPermissionModal(true);
+    } catch (error) {
+      CrashlyticsHelper.recordError(error as Error, 'checkNotificationPermission');
+    }
+  };
+
+  const handleAllowNotifications = async () => {
+    const granted = await NotificationHelper.requestPermission();
+    if (granted) {
+      setShowNotificationPermissionModal(false);
+      // Token save + channel setup normally only run via NotificationHelper.initialize()
+      // post-login; harmless (and useful) to also run it here if the user is already logged in.
+      NotificationHelper.initialize();
+    } else {
+      setNotificationPermissionAlreadyDenied(true);
     }
   };
 
@@ -219,29 +289,20 @@ export default function App() {
     );
   }
 
-  if (forceUpdateInfo) {
+  if (hardUpdateInfo) {
     return (
       <LinearGradient colors={[COLORS.bg, COLORS.bgLight]} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.centerContent}>
             <Text style={styles.updateTitle}>Update Required</Text>
-            <Text style={styles.updateText}>{forceUpdateInfo.message}</Text>
+            <Text style={styles.updateText}>{hardUpdateInfo.message}</Text>
             <Text style={styles.updateMeta}>Current: v{APP_VERSION}</Text>
-            <Text style={styles.updateMeta}>Minimum: v{forceUpdateInfo.minimumVersion}</Text>
-            <Text style={styles.updateMeta}>Latest: v{forceUpdateInfo.latestVersion}</Text>
+            <Text style={styles.updateMeta}>Minimum: v{hardUpdateInfo.minimumVersion}</Text>
+            <Text style={styles.updateMeta}>Latest: v{hardUpdateInfo.latestVersion}</Text>
 
             <TouchableOpacity
               style={styles.updateButton}
-              onPress={() => {
-                const fallbackUrl =
-                  Platform.OS === 'ios'
-                    ? 'https://apps.apple.com/'
-                    : 'https://play.google.com/store/apps';
-                const targetUrl = forceUpdateInfo.updateUrl || fallbackUrl;
-                Linking.openURL(targetUrl).catch((error) => {
-                  CrashlyticsHelper.recordError(error as Error, 'openUpdateUrl');
-                });
-              }}
+              onPress={() => openStoreUrl(hardUpdateInfo.updateUrl)}
             >
               <Text style={styles.updateButtonText}>Update App</Text>
             </TouchableOpacity>
@@ -260,6 +321,28 @@ export default function App() {
           initialLearning={initialRouteData.learning}
           initialStep={initialRouteData.initialStep}
           isConnected={isConnected}
+        />
+        {softUpdateInfo && (
+          <SoftUpdateModal
+            visible
+            latestVersion={softUpdateInfo.latestVersion}
+            message={softUpdateInfo.message}
+            onUpdate={() => openStoreUrl(softUpdateInfo.updateUrl)}
+            onLater={async () => {
+              await AuthStorage.setDismissedUpdateVersion(softUpdateInfo.latestVersion);
+              setSoftUpdateInfo(null);
+            }}
+          />
+        )}
+        <NotificationPermissionModal
+          visible={showNotificationPermissionModal}
+          alreadyDenied={notificationPermissionAlreadyDenied}
+          onAllow={handleAllowNotifications}
+          onOpenSettings={() => {
+            Linking.openSettings();
+            setShowNotificationPermissionModal(false);
+          }}
+          onDismiss={() => setShowNotificationPermissionModal(false)}
         />
       </SafeAreaProvider>
     </I18nProvider>

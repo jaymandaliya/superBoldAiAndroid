@@ -2,6 +2,15 @@ PODS:
   - boost (1.84.0)
   - BVLinearGradient (2.8.3):
     - React-Core
+  - CashfreeAnalyticsSDK (2.3.3):
+    - CFNetworkSDK (= 2.3.3)
+  - CashfreePG (2.4.0):
+    - CashfreePGUISDK (= 2.4.0)
+  - CashfreePGCoreSDK (2.4.0):
+    - CashfreeAnalyticsSDK (= 2.3.3)
+  - CashfreePGUISDK (2.4.0):
+    - CashfreePGCoreSDK (= 2.4.0)
+  - CFNetworkSDK (2.3.3)
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
   - FBLazyVector (0.80.2)
@@ -1877,6 +1886,9 @@ PODS:
   - react-native-biz-sdk (4.2.1):
     - PayUIndia-CheckoutPro (~> 9.3)
     - React
+  - react-native-cashfree-pg-sdk (2.4.0):
+    - CashfreePG (= 2.4.0)
+    - React-Core
   - react-native-keep-awake (1.4.0):
     - RCTRequired
     - RCTTypeSafety
@@ -2742,6 +2754,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-biz-sdk (from `../node_modules/payu-non-seam-less-react`)
+  - react-native-cashfree-pg-sdk (from `../node_modules/react-native-cashfree-pg-sdk`)
   - "react-native-keep-awake (from `../node_modules/@sayem314/react-native-keep-awake`)"
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -2793,6 +2806,11 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - CashfreeAnalyticsSDK
+    - CashfreePG
+    - CashfreePGCoreSDK
+    - CashfreePGUISDK
+    - CFNetworkSDK
     - Firebase
     - FirebaseAnalytics
     - FirebaseCore
@@ -2919,6 +2937,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-biz-sdk:
     :path: "../node_modules/payu-non-seam-less-react"
+  react-native-cashfree-pg-sdk:
+    :path: "../node_modules/react-native-cashfree-pg-sdk"
   react-native-keep-awake:
     :path: "../node_modules/@sayem314/react-native-keep-awake"
   react-native-netinfo:
@@ -3017,6 +3037,11 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
+  CashfreeAnalyticsSDK: 11f37b2323be07bf07948bd6046b7c19e947ae07
+  CashfreePG: 9dfcc5badd0b815312e79923fca49d7e6cf1d55d
+  CashfreePGCoreSDK: 223fc3591ac75f427dc926b9df6b7c17ffa37c67
+  CashfreePGUISDK: 3cb94a859c1aba120c345fe0940685f2fc4634a7
+  CFNetworkSDK: 6a6261de10185efd4d2957583f0cbad395999cac
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 86588b5a1547e7a417942a08f49559b184e002c8
@@ -3091,6 +3116,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 7018c5b7da5b13ed22fe55dae51d50187a00b2d7
   React-microtasksnativemodule: 8ff9cb220a8efa625b5885996bd69e69db9edf02
   react-native-biz-sdk: 7d7fb31512c552be17e2eacbdc566fa4a757b39f
+  react-native-cashfree-pg-sdk: 97289d587ba56ad5a7db6cc4859496cd49ee9630
   react-native-keep-awake: 129cb4bd75d0f304a479b4c4527d2994fe18e43c
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: 01f6d357d42395422eed7c3bfe715614728f2989

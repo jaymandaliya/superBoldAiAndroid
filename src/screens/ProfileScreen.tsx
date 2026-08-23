@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-simple-toast';
@@ -180,6 +181,22 @@ export function ProfileScreen({ navigation, route }: Props) {
               </View>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
             </TouchableOpacity>
+
+            {Platform.OS === 'android' && (
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => navigation.navigate('CashfreeSubscription', { user, existingLearning })}
+                activeOpacity={0.7}
+              >
+                <View style={styles.menuItemLeft}>
+                  <View style={[styles.menuIcon, { backgroundColor: 'rgba(63, 162, 124, 0.16)' }]}>
+                    <Ionicons name="repeat-outline" size={18} color={COLORS.success} />
+                  </View>
+                  <Text style={styles.menuItemText}>Premium Auto-Pay</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={COLORS.textDim} />
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.menuItem}

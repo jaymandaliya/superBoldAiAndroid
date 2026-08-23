@@ -18,6 +18,10 @@
       android:supportsRtl="true"
       tools:replace="android:appComponentFactory,android:theme"
       android:appComponentFactory="androidx.core.app.CoreComponentFactory">
+      <meta-data
+        android:name="cashfree_subscription_flow_enable"
+        android:value="true"
+        tools:replace="android:value"/>
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

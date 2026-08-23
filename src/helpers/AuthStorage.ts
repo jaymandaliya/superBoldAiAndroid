@@ -1,15 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AUTH_TOKEN_KEY, PERMISSION_SHOWN_KEY } from '../constants';
 import { CrashlyticsHelper } from './CrashlyticsHelper';
-import { OnboardingProfile, UserPath } from '../types';
+import { AudioCatalogEntry, OnboardingProfile, UserPath } from '../types';
 
 // Storage keys
 const LANGUAGE_CONTEXT_KEY = '@language_context';
 const APP_LANGUAGE_KEY = '@app_language';
 const LEARNING_COMPLETION_PREFIX = '@learning_completed_';
 const ONBOARDING_PROFILE_PREFIX = '@onboarding_profile_';
+const AUDIO_CATALOG_CACHE_PREFIX = '@audio_catalog_';
 const USER_PATH_PREFIX = '@user_path_';
 const USER_AGE_PREFIX = '@user_age_';
+const DISMISSED_UPDATE_VERSION_KEY = '@dismissed_update_version';
 
 // ============================================
 // Auth Storage Helper with Language Persistence
@@ -203,6 +205,45 @@ export const AuthStorage = {
       CrashlyticsHelper.log(`Onboarding profile cleared for user ${userId}`);
     } catch (error) {
       CrashlyticsHelper.recordError(error as Error, 'AuthStorage.clearOnboardingProfile');
+    }
+  },
+
+  // ── Audio catalog cache (onboarding voice-over clips, per native language) ──
+  async saveAudioCatalogCache(language: string, entries: AudioCatalogEntry[]) {
+    try {
+      await AsyncStorage.setItem(`${AUDIO_CATALOG_CACHE_PREFIX}${language}`, JSON.stringify(entries));
+    } catch (error) {
+      CrashlyticsHelper.recordError(error as Error, 'AuthStorage.saveAudioCatalogCache');
+    }
+  },
+
+  async getAudioCatalogCache(language: string): Promise<AudioCatalogEntry[] | null> {
+    try {
+      const raw = await AsyncStorage.getItem(`${AUDIO_CATALOG_CACHE_PREFIX}${language}`);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : null;
+    } catch (error) {
+      CrashlyticsHelper.recordError(error as Error, 'AuthStorage.getAudioCatalogCache');
+      return null;
+    }
+  },
+
+  // Soft-update nudge: remembers the latest_version the user already dismissed
+  // "Later" for, so it doesn't reappear until the backend ships a newer one.
+  async getDismissedUpdateVersion(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem(DISMISSED_UPDATE_VERSION_KEY);
+    } catch (error) {
+      return null;
+    }
+  },
+
+  async setDismissedUpdateVersion(version: string) {
+    try {
+      await AsyncStorage.setItem(DISMISSED_UPDATE_VERSION_KEY, version);
+    } catch (error) {
+      CrashlyticsHelper.recordError(error as Error, 'AuthStorage.setDismissedUpdateVersion');
     }
   },
 

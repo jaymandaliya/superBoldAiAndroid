@@ -7,6 +7,7 @@ import notifee, {
   AuthorizationStatus,
 } from '@notifee/react-native';
 import { Platform, PermissionsAndroid } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { AUTH_URL } from '../constants';
 import { AuthStorage } from './AuthStorage';
@@ -18,12 +19,40 @@ import { CrashlyticsHelper } from './CrashlyticsHelper';
 
 // Default channel ID for notifications
 const DEFAULT_CHANNEL_ID = 'default';
+const PERMISSION_REQUEST_ATTEMPTED_KEY = '@notification_permission_attempted';
 
 export const NotificationHelper = {
+  /** True once requestPermission() has ever been called this install — lets App.tsx
+   * distinguish "never asked" (let the silent post-login prompt run) from "asked and
+   * declined/still not granted" (needs the custom re-nudge modal + Settings deep link). */
+  async hasAttemptedPermissionRequest(): Promise<boolean> {
+    try {
+      return (await AsyncStorage.getItem(PERMISSION_REQUEST_ATTEMPTED_KEY)) === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  /** Current OS authorization status without triggering a new prompt. */
+  async getPermissionStatus(): Promise<AuthorizationStatus> {
+    try {
+      const settings = await notifee.getNotificationSettings();
+      return settings.authorizationStatus;
+    } catch (error) {
+      console.error('[Notification] Get permission status error:', error);
+      return AuthorizationStatus.NOT_DETERMINED;
+    }
+  },
+
   /**
    * Request notification permissions (required for iOS and Android 13+)
    */
   async requestPermission(): Promise<boolean> {
+    try {
+      await AsyncStorage.setItem(PERMISSION_REQUEST_ATTEMPTED_KEY, 'true');
+    } catch (error) {
+      console.error('[Notification] Mark permission attempted error:', error);
+    }
     try {
       if (Platform.OS === 'ios') {
         // Request via notifee first (shows native iOS dialog)

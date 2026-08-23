@@ -92,6 +92,18 @@ UserNameCapture: {
     user: User;
     existingLearning?: Learning | null;
   };
+  CashfreeSubscription: {
+    user: User;
+    existingLearning?: Learning | null;
+  };
+  // Forced pre-room paywall for non-paying users right after onboarding finishes —
+  // mirrors iOS's PaywallScreen, Cashfree standing in for StoreKit on Android.
+  Paywall: {
+    user: User;
+    existingLearning?: Learning | null;
+    name: string;
+    nextStep: 'TalkingSession' | 'LanguageSelection';
+  };
 };
 
 declare global {

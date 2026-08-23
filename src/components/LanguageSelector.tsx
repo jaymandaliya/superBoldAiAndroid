@@ -8,7 +8,6 @@ import {
   Dimensions,
   StyleSheet,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, FONTS } from '../constants';
 import { LANGUAGES } from '../constants/languages';
@@ -20,6 +19,8 @@ interface LanguageSelectorProps {
   onClose: () => void;
   onSelect: (language: Language) => void;
   title: string;
+  /** Shown under the title, e.g. clarifying "Which language do you speak?" for native-language pickers. */
+  subtitle?: string;
   selectedLanguage: Language | null;
   languages?: Language[];
 }
@@ -29,140 +30,141 @@ export function LanguageSelector({
   onClose,
   onSelect,
   title,
+  subtitle,
   selectedLanguage,
   languages,
 }: LanguageSelectorProps) {
   const { height: screenHeight } = Dimensions.get('window');
   const insets = useSafeAreaInsets();
-  const availableHeight = screenHeight - insets.top - insets.bottom - 24;
-  const modalMaxHeight = Math.min(screenHeight * 0.82, availableHeight);
+  const sheetMaxHeight = Math.min(screenHeight * 0.82, screenHeight - insets.top - 24);
 
-  const renderLanguageItem = useCallback(({ item }: { item: Language }) => (
-    <TouchableOpacity
-      style={[
-        styles.languageItem,
-        selectedLanguage?.code === item.code && styles.languageItemSelected,
-      ]}
-      onPress={() => {
-        onSelect(item);
-        onClose();
-      }}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.languageFlag}>{item.flag}</Text>
-      <View style={styles.languageNameWrap}>
-        {item.englishName ? (
-          <>
-            <Text style={styles.languageEnglishName}>{item.englishName}</Text>
-            {item.englishName !== item.name && (
-              <Text style={styles.languageNativeName}>{item.name}</Text>
-            )}
-          </>
-        ) : (
-          <Text style={styles.languageName}>{item.name}</Text>
-        )}
-      </View>
-      {selectedLanguage?.code === item.code && (
-        <View style={styles.checkmarkWrap}>
-          <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
+  const renderLanguageItem = useCallback(({ item }: { item: Language }) => {
+    const selected = selectedLanguage?.code === item.code;
+    return (
+      <TouchableOpacity
+        style={[styles.languageItem, selected && styles.languageItemSelected]}
+        onPress={() => {
+          onSelect(item);
+          onClose();
+        }}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.languageFlag}>{item.flag}</Text>
+        <View style={styles.languageNameWrap}>
+          {item.englishName && item.englishName !== item.name ? (
+            <>
+              <Text style={styles.languageEnglishName}>{item.name}</Text>
+              <Text style={styles.languageNativeName}>{item.englishName}</Text>
+            </>
+          ) : (
+            <Text style={styles.languageName} numberOfLines={1}>{item.name}</Text>
+          )}
         </View>
-      )}
-    </TouchableOpacity>
-  ), [selectedLanguage, onSelect, onClose]);
+        {selected && (
+          <View style={styles.checkmarkWrap}>
+            <Ionicons name="checkmark-circle" size={24} color={COLORS.primary} />
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  }, [selectedLanguage, onSelect, onClose]);
 
   return (
-    <Modal 
-      visible={visible} 
-      animationType="slide" 
-      transparent={true} 
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
       onRequestClose={onClose}
     >
-      <View
-        style={[
-          styles.modalOverlay,
-          {
-            paddingTop: Math.max(insets.top, 12),
-            paddingBottom: Math.max(insets.bottom, 12),
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={[COLORS.card, COLORS.bgSecondary]}
-          style={[styles.modalContent, { maxHeight: modalMaxHeight }]}
-        >
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{title}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+      <View style={styles.overlay}>
+        <TouchableOpacity style={StyleSheet.absoluteFillObject} activeOpacity={1} onPress={onClose} />
+
+        <View style={[styles.sheet, { maxHeight: sheetMaxHeight, paddingBottom: insets.bottom + 12 }]}>
+          <View style={styles.handle} />
+
+          <View style={styles.header}>
+            <View style={styles.titleWrap}>
+              <Text style={styles.title} numberOfLines={1}>{title}</Text>
+              {subtitle ? (
+                <Text style={styles.subtitle} numberOfLines={2}>{subtitle}</Text>
+              ) : null}
+            </View>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Ionicons name="close" size={20} color={COLORS.textMuted} />
             </TouchableOpacity>
           </View>
-          
+
           <FlatList
             data={languages ?? LANGUAGES}
             renderItem={renderLanguageItem}
             keyExtractor={(item) => item.code}
             style={styles.languageList}
             contentContainerStyle={styles.languageListContent}
-            showsVerticalScrollIndicator={true}
+            showsVerticalScrollIndicator={false}
           />
-        </LinearGradient>
+        </View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  overlay: {
     flex: 1,
-    backgroundColor: COLORS.overlay,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'flex-end',
   },
-  modalContent: {
-    backgroundColor: COLORS.bgLight,
-    borderRadius: 22,
-    width: '100%',
-    paddingTop: 20,
-    paddingBottom: 12,
-    minHeight: 300,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+  sheet: {
+    backgroundColor: '#121826',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderTopWidth: 1.5,
+    borderColor: 'rgba(255,87,34,0.35)',
+    paddingTop: 12,
   },
-  modalHeader: {
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    paddingBottom: 14,
-    paddingHorizontal: 18,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.bgLighter,
+    paddingHorizontal: 22,
   },
-  modalTitle: {
-    fontSize: 22,
-    color: COLORS.text,
+  titleWrap: {
     flex: 1,
+    marginRight: 12,
+  },
+  title: {
+    fontSize: 18,
+    color: '#fff',
     fontFamily: FONTS.bold,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+    fontFamily: FONTS.regular,
+    marginTop: 4,
   },
   closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.card,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  closeButtonText: {
-    fontSize: 18,
-    color: COLORS.textMuted,
-    fontFamily: FONTS.bold,
   },
   languageList: {
     flexGrow: 0,
   },
   languageListContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 22,
     paddingBottom: 12,
   },
   languageItem: {
@@ -171,20 +173,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 14,
-    marginBottom: 10,
-    marginHorizontal: 2,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    marginBottom: 8,
   },
   languageItemSelected: {
-    backgroundColor: COLORS.modalSelectedBg,
-    borderWidth: 2,
-    borderColor: COLORS.modalSelectedBorder,
+    backgroundColor: 'rgba(255,91,46,0.12)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,91,46,0.45)',
   },
   languageFlag: {
-    fontSize: 32,
-    marginRight: 16,
+    fontSize: 30,
+    marginRight: 14,
   },
   languageNameWrap: {
     flex: 1,
@@ -192,7 +190,7 @@ const styles = StyleSheet.create({
   },
   languageEnglishName: {
     fontSize: 17,
-    color: COLORS.text,
+    color: '#fff',
     fontFamily: FONTS.semiBold,
     lineHeight: 23,
   },
@@ -205,14 +203,8 @@ const styles = StyleSheet.create({
   },
   languageName: {
     fontSize: 18,
-    color: COLORS.text,
-    flex: 1,
+    color: '#fff',
     fontFamily: FONTS.medium,
-  },
-  checkmark: {
-    fontSize: 22,
-    color: COLORS.success,
-    fontFamily: FONTS.bold,
   },
   checkmarkWrap: {
     flexShrink: 0,

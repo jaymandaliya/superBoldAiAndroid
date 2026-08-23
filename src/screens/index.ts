@@ -13,3 +13,5 @@ export { HistoryTabScreen } from './HistoryTabScreen';
 export { TestScreen } from './TestScreen';
 export { TalkingScreen } from './TalkingScreen';
 export { OnboardingLanguageModal } from './OnboardingLanguageModal';
+export { CashfreeSubscriptionScreen } from './CashfreeSubscriptionScreen';
+export { PaywallScreen } from './PaywallScreen';

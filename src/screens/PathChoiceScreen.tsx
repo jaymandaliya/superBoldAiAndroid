@@ -16,11 +16,13 @@ import { RootStackParamList } from '../navigation/types';
 import { COLORS, FONTS, LEARNING_URL } from '../constants';
 import { AuthStorage, CrashlyticsHelper } from '../helpers';
 import { LANGUAGES } from '../constants/languages';
-import { LanguageSelector } from '../components';
+import { LanguageSelector, LanguageConfirmSheet } from '../components';
 import { Language, Learning } from '../types';
 import { useI18n } from '../localization';
+import Toast from 'react-native-simple-toast';
+import { fetchAppSettings } from '../services';
 
-const TARGET_LANGUAGE_CODES = ['en', 'de', 'fr', 'es', 'nl', 'sv'];
+const TARGET_LANGUAGE_CODES = ['en', 'de', 'fr', 'es', 'nl', 'sv', 'hi', 'zh', 'ja', 'ko'];
 const TARGET_LANGUAGES = TARGET_LANGUAGE_CODES
   .map(code => LANGUAGES.find(l => l.code === code))
   .filter((l): l is Language => Boolean(l));
@@ -41,8 +43,12 @@ export function PathChoiceScreen({ navigation, route }: Props) {
   const slide2   = useRef(new Animated.Value(40)).current;
 
   const [showTargetPicker, setShowTargetPicker] = useState(false);
+  const [showTargetConfirm, setShowTargetConfirm] = useState(false);
+  const [target, setTarget] = useState<Language | null>(null);
   const [loading, setLoading] = useState(false);
   const [nativeCode, setNativeCode] = useState<string | null>(null);
+  // Default true so the card doesn't flash-hide while the flag is still loading.
+  const [isCompanionFlowEnabled, setIsCompanionFlowEnabled] = useState(true);
 
   React.useEffect(() => {
     Animated.sequence([
@@ -52,6 +58,14 @@ export function PathChoiceScreen({ navigation, route }: Props) {
         Animated.spring(slide2, { toValue: 0, friction: 8, tension: 50, useNativeDriver: true }),
       ]),
     ]).start();
+  }, []);
+
+  React.useEffect(() => {
+    fetchAppSettings()
+      .then(({ ok, settings }) => {
+        if (ok && settings) setIsCompanionFlowEnabled(settings.isCompanionFlow);
+      })
+      .catch((error) => CrashlyticsHelper.recordError(error as Error, 'fetchAppSettings:pathChoice'));
   }, []);
 
   const handleLearning = async () => {
@@ -65,8 +79,18 @@ export function PathChoiceScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleTargetSelected = async (lang: Language) => {
+  const handleTargetPicked = (lang: Language) => {
+    if (nativeCode && lang.code === nativeCode) {
+      Toast.show(t('language_selection_same_language_toast'), Toast.SHORT);
+      return;
+    }
+    setTarget(lang);
     setShowTargetPicker(false);
+    setShowTargetConfirm(true);
+  };
+
+  const handleConfirmTarget = async () => {
+    if (!target) return;
     setLoading(true);
 
     try {
@@ -82,34 +106,39 @@ export function PathChoiceScreen({ navigation, route }: Props) {
           },
           body: JSON.stringify({
             nativeLanguage: nativeCode,
-            targetLanguage: lang.code,
+            targetLanguage: target.code,
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
           if (data.learning) learningToPass = data.learning as Learning;
-          await AuthStorage.saveLanguageContext(nativeCode, lang.code, String(user.id));
+          await AuthStorage.saveLanguageContext(nativeCode, target.code, String(user.id));
         }
       }
 
-      navigation.navigate('UserNameCapture', {
-        user,
-        existingLearning: learningToPass,
-        initialStep: user.name ? 2 : 1,
-        pathChoice: 'learn',
-      });
+      setShowTargetConfirm(false);
+      navigateToNameOrGoal(learningToPass);
     } catch (e) {
-      CrashlyticsHelper.recordError(e as Error, 'PathChoice.handleTargetSelected');
-      navigation.navigate('UserNameCapture', {
-        user,
-        existingLearning,
-        initialStep: user.name ? 2 : 1,
-        pathChoice: 'learn',
-      });
+      CrashlyticsHelper.recordError(e as Error, 'PathChoice.handleConfirmTarget');
+      setShowTargetConfirm(false);
+      navigateToNameOrGoal(existingLearning);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Name is already known for a returning user — skip straight to the goal step.
+  // (iOS routes to a separate LearningGoal screen here; Android's UserNameCapture
+  // is the same consolidated wizard for all three steps, so initialStep:2 is the
+  // equivalent "skip past name entry".)
+  const navigateToNameOrGoal = (learningToPass: Learning | null | undefined) => {
+    navigation.navigate('UserNameCapture', {
+      user,
+      existingLearning: learningToPass,
+      initialStep: user.name ? 2 : 1,
+      pathChoice: 'learn',
+    });
   };
 
   const handleChat = async () => {
@@ -187,7 +216,7 @@ export function PathChoiceScreen({ navigation, route }: Props) {
                       </View>
                     ))}
                     <View style={styles.chip}>
-                      <Text style={styles.chipText}>+more</Text>
+                      <Text style={styles.chipText}>{t('path_choice_more_chip')}</Text>
                     </View>
                   </View>
                 </View>
@@ -195,30 +224,32 @@ export function PathChoiceScreen({ navigation, route }: Props) {
               </TouchableOpacity>
             </Animated.View>
 
-            {/* 1:1 card */}
-            <Animated.View style={{ transform: [{ translateY: slide2 }] }}>
-              <TouchableOpacity
-                style={styles.card}
-                onPress={handleChat}
-                activeOpacity={0.82}
-                disabled={loading}
-              >
-                <View style={[styles.cardIconBox, styles.cardIconBoxChat]}>
-                  <Ionicons name="chatbubble-ellipses" size={24} color={COLORS.primaryLight} />
-                </View>
-                <View style={styles.cardBody}>
-                  <View style={styles.cardTitleRow}>
-                    <Text style={styles.cardTitle}>{t('path_choice_chat_title')}</Text>
-                    <View style={styles.newBadge}>
-                      <Text style={styles.newBadgeText}>{t('path_choice_chat_badge_new')}</Text>
-                    </View>
+            {/* 1:1 card — remotely gated by GET /api/app-settings.isCompanionFlow */}
+            {isCompanionFlowEnabled && (
+              <Animated.View style={{ transform: [{ translateY: slide2 }] }}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={handleChat}
+                  activeOpacity={0.82}
+                  disabled={loading}
+                >
+                  <View style={[styles.cardIconBox, styles.cardIconBoxChat]}>
+                    <Ionicons name="chatbubble-ellipses" size={24} color={COLORS.primaryLight} />
                   </View>
-                  <Text style={styles.cardDesc}>{t('path_choice_chat_desc')}</Text>
-                  <Text style={styles.cardMeta}>{t('path_choice_chat_meta')}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-              </TouchableOpacity>
-            </Animated.View>
+                  <View style={styles.cardBody}>
+                    <View style={styles.cardTitleRow}>
+                      <Text style={styles.cardTitle}>{t('path_choice_chat_title')}</Text>
+                      <View style={styles.newBadge}>
+                        <Text style={styles.newBadgeText}>{t('path_choice_chat_badge_new')}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.cardDesc}>{t('path_choice_chat_desc')}</Text>
+                    <Text style={styles.cardMeta}>{t('path_choice_chat_meta')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </Animated.View>
+            )}
 
           </View>
           </View>
@@ -228,10 +259,27 @@ export function PathChoiceScreen({ navigation, route }: Props) {
       <LanguageSelector
         visible={showTargetPicker}
         onClose={() => setShowTargetPicker(false)}
-        onSelect={handleTargetSelected}
+        onSelect={handleTargetPicked}
         title={t('path_choice_target_lang_title')}
-        selectedLanguage={null}
+        selectedLanguage={target}
         languages={TARGET_LANGUAGES}
+      />
+
+      <LanguageConfirmSheet
+        visible={showTargetConfirm}
+        title={t('path_choice_target_lang_title')}
+        label={t('language_selection_i_want_to_learn_label')}
+        language={target}
+        placeholder={t('language_selection_target_placeholder')}
+        onPressChange={() => setShowTargetPicker(true)}
+        ctaLabel={t('language_selection_continue_setup_button')}
+        onConfirm={handleConfirmTarget}
+        ctaDisabled={!target}
+        ctaLoading={loading}
+        onBack={() => {
+          setShowTargetConfirm(false);
+          setShowTargetPicker(false);
+        }}
       />
     </View>
   );
