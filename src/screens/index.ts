@@ -15,3 +15,7 @@ export { TalkingScreen } from './TalkingScreen';
 export { OnboardingLanguageModal } from './OnboardingLanguageModal';
 export { CashfreeSubscriptionScreen } from './CashfreeSubscriptionScreen';
 export { PaywallScreen } from './PaywallScreen';
+export { UserNameCaptureScreen } from './UserNameCaptureScreen';
+export { AgeCaptureScreen } from './AgeCaptureScreen';
+export { LearningGoalScreen } from './LearningGoalScreen';
+export { SkillLevelScreen } from './SkillLevelScreen';

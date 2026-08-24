@@ -22,6 +22,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/types';
 import { subscribeYearlyPremium, fetchAppSettings } from '../services';
+import { fetchCashfreeSubscriptionStatus } from '../payment/cashfreeSubscriptionService';
 import { usePayUCheckout, getPayUBizSdk } from '../payment/usePayUCheckout';
 import { buildSubscriptionYearlyCheckoutParams } from '../payment/payuParams';
 import { PAYU_SUBSCRIPTION_PRODUCT } from '../payment/payuConfig';
@@ -255,6 +256,7 @@ function LearningSessionCard({
   onHistory,
   isLoading,
   isPremium,
+  isInTrialPeriod = false,
   onChangeLanguage,
   onChangeNativeLanguage,
   showNewBadge = false,
@@ -265,6 +267,7 @@ function LearningSessionCard({
   onHistory: () => void;
   isLoading: boolean;
   isPremium: boolean;
+  isInTrialPeriod?: boolean;
   onChangeLanguage?: () => void;
   onChangeNativeLanguage?: () => void;
   showNewBadge?: boolean;
@@ -280,7 +283,9 @@ function LearningSessionCard({
   const isLanguageLocked = (learning.current_level ?? 0) > 1;
   const levelOrTrialLabel = hasPaidAccess(learning) ? t('room_header_level', { level: displayLevel }) : t('label_free_trial');
   const planLabel = hasPaidAccess(learning) ? getPlanLabel(learning) : '';
-  const canEditLanguage = !isPremium && !isLanguageLocked;
+  // Still editable during the Cashfree trial window even though is_premium is already
+  // optimistically true — locks only once the subscription actually converts (trial ends).
+  const canEditLanguage = (!isPremium || isInTrialPeriod) && !isLanguageLocked;
 
   const completedLevels = Math.max(0, displayLevel - 1);
 
@@ -489,6 +494,10 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isPremiumUser, setIsPremiumUser] = useState(existingLearning?.is_premium || false);
+  // Cashfree's ₹1-authorized 3-day trial still sets is_premium=true optimistically —
+  // this distinguishes "still in the trial window" so language stays editable until
+  // the trial actually converts to a paid, locked-in subscription.
+  const [isCashfreeTrialActive, setIsCashfreeTrialActive] = useState(false);
   const [showPlansCTA, setShowPlansCTA] = useState(false);
   const [userPath, setUserPath] = useState<UserPath | null>(null);
   const [pendingLearningSetup, setPendingLearningSetup] = useState(false);
@@ -536,6 +545,19 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
         if (ok && settings) setIsCompanionFlowEnabled(settings.isCompanionFlow);
       })
       .catch((error) => CrashlyticsHelper.recordError(error as Error, 'fetchAppSettings:languageSelection'));
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await AuthStorage.getToken();
+        if (!token) return;
+        const { ok, data } = await fetchCashfreeSubscriptionStatus(token);
+        if (ok && data) setIsCashfreeTrialActive(Boolean(data.is_trial_period));
+      } catch (error) {
+        CrashlyticsHelper.recordError(error as Error, 'fetchCashfreeSubscriptionStatus:languageSelection');
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -891,14 +913,14 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
     setShowTargetSelector(false);
 
     // After language setup from the chat-path home "Start Learning" flow,
-    // proceed to goal + skill steps (UserNameCapture step 2)
+    // proceed straight to the goal step (name is already known for this user).
     if (pendingLearningSetup) {
       setPendingLearningSetup(false);
       setTimeout(() => {
         const parent = navigation.getParent();
-        const params = { user, existingLearning: localLearning, initialStep: 2 as const, pathChoice: 'learn' as const };
-        if (parent) (parent as any).navigate('UserNameCapture', params);
-        else (navigation as any).navigate('UserNameCapture', params);
+        const params = { user, existingLearning: localLearning, name: user.name ?? '', age: null };
+        if (parent) (parent as any).navigate('LearningGoal', params);
+        else (navigation as any).navigate('LearningGoal', params);
       }, 350);
     }
   };
@@ -1225,12 +1247,18 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
         });
       } else if (gotoRoom) {
         if (learningToPass) await connectToRoom(learningToPass, 0, true);
+      } else if (user.name) {
+        navigation.replace('LearningGoal', {
+          user,
+          existingLearning: learningToPass,
+          name: user.name,
+          age: null,
+        });
       } else {
         navigation.replace('UserNameCapture', {
           user,
           existingLearning: learningToPass,
           pathChoice: 'learn',
-          initialStep: user.name ? 2 : 1,
         });
       }
       return;
@@ -1590,6 +1618,7 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                         onHistory={() => navigateToHistory(String(ls.id))}
                         isLoading={loading || savingLanguage}
                         isPremium={isPremiumUser}
+                        isInTrialPeriod={isCashfreeTrialActive}
                         onChangeLanguage={() => {
                           setEditingLanguageLearningId(String(ls.id));
                           setShowTargetSelector(true);
@@ -1671,6 +1700,7 @@ export function LanguageSelectionScreen({ navigation, route }: Props) {
                         onHistory={() => navigateToHistory(String(ls.id))}
                         isLoading={loading || savingLanguage}
                         isPremium={isPremiumUser}
+                        isInTrialPeriod={isCashfreeTrialActive}
                         onChangeLanguage={() => {
                           setEditingLanguageLearningId(String(ls.id));
                           setShowTargetSelector(true);

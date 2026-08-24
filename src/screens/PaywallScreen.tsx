@@ -27,13 +27,14 @@ import { LANGUAGES } from '../constants/languages';
 import { CrashlyticsHelper, AuthStorage, NetworkHelper } from '../helpers';
 import { useI18n } from '../localization';
 import { useResolvedNativeLanguage } from '../hooks/useResolvedNativeLanguage';
-import { toCFEnvironment } from '../payment/cashfreeConfig';
+import { toCFEnvironment, CASHFREE_FORCE_SHOW_OFFER_FOR_TESTING } from '../payment/cashfreeConfig';
 import {
   fetchAndroidPaywall,
   createCashfreeSubscription,
   verifyCashfreeSubscription,
   fetchCashfreeSubscriptionStatus,
   CashfreeAndroidPaywall,
+  CASHFREE_FALLBACK_OFFER,
 } from '../payment/cashfreeSubscriptionService';
 import { useCashfreeSubscription } from '../payment/useCashfreeSubscription';
 import { PaymentSuccessOverlay } from './room/components/PaymentSuccessOverlay';
@@ -74,6 +75,7 @@ export function PaywallScreen({ navigation, route }: Props) {
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [failedVideoUrls, setFailedVideoUrls] = useState<string[]>([]);
   const [heroVideoReady, setHeroVideoReady] = useState(false);
+  const [showVideoControls, setShowVideoControls] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState<{
@@ -170,7 +172,14 @@ export function PaywallScreen({ navigation, route }: Props) {
       const token = await AuthStorage.getToken();
       if (token) authTokenRef.current = token;
       const { ok, paywall } = await fetchAndroidPaywall(resolvedNativeLanguage);
-      if (!cancelled && ok && paywall) setPaywallData(paywall);
+      if (cancelled) return;
+      if (ok && paywall) {
+        setPaywallData(paywall);
+      } else if (CASHFREE_FORCE_SHOW_OFFER_FOR_TESTING) {
+        // Backend paywall endpoint isn't live yet — render the offer UI anyway so the
+        // screen is testable. Tapping the CTA still hits the real /create endpoint.
+        setPaywallData({ offer: CASHFREE_FALLBACK_OFFER });
+      }
     })();
     return () => { cancelled = true; };
   }, [resolvedNativeLanguage]);
@@ -193,11 +202,16 @@ export function PaywallScreen({ navigation, route }: Props) {
   const priceReady = Boolean(offer?.recurringPrice);
   const monthlyPrice = offer?.recurringPrice ?? null;
   // §6 of the architecture doc: authorizationAmountRefunded=true is the free-trial
-  // shape (₹1 authorized then refunded); false is the paid-intro shape (₹5 kept).
-  const isFreeTrialOffer = offer?.authorizationAmountRefunded ?? true;
+  // shape (₹1 authorized then refunded); false/absent is the paid-intro shape
+  // (current live offer: ₹1 authorized and kept, then ₹199 after the trial) —
+  // only show "FREE" copy when the backend explicitly confirms a refund.
+  const isFreeTrialOffer = offer?.authorizationAmountRefunded === true;
   const trialPrice = isFreeTrialOffer
     ? t('paywall_trial_free_price_label')
-    : (offer?.trialPrice ?? monthlyPrice);
+    : (offer?.trialPrice
+        ?? (offer?.authorizationAmount != null
+              ? `${offer.currencySymbol ?? '₹'}${offer.authorizationAmount}`
+              : monthlyPrice));
   const topBadgeText = isFreeTrialOffer
     ? t('paywall_trial_free_days_badge', { days: trialDays })
     : (offer?.discountLabel || t('paywall_trial_urgency_badge'));
@@ -312,15 +326,20 @@ export function PaywallScreen({ navigation, route }: Props) {
       const subscriptionId = subscriptionIdRef.current;
       if (!token || !subscriptionId) {
         setIsProcessing(false);
-        Toast.show(t('language_selection_payment_received_message'), Toast.LONG);
         return;
       }
       const { ok, data } = await verifyCashfreeSubscription(token, subscriptionId);
       setIsProcessing(false);
       if (!ok || !data) {
-        Toast.show(t('language_selection_payment_received_message'), Toast.LONG);
-        void proceed();
-        return;
+        // /verify didn't return the shape we expect, but the native SDK completed the
+        // mandate flow and the backend still grants access via its own webhook path
+        // independent of this call — so still show the success modal rather than
+        // silently dropping the user onto the dashboard. Logged so the shape mismatch
+        // itself stays visible and gets fixed server-side.
+        CrashlyticsHelper.recordError(
+          new Error(`Cashfree /verify failed or returned unexpected shape for subscriptionId=${subscriptionId}`),
+          'cashfreeVerify:paywall'
+        );
       }
       setPaymentSuccess({
         message: t('language_selection_premium_welcome_message'),
@@ -434,25 +453,31 @@ export function PaywallScreen({ navigation, route }: Props) {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                 />
-                <Video
-                  key={heroVideoUrl}
-                  source={{ uri: heroVideoUrl }}
-                  style={styles.heroVideo}
-                  resizeMode="cover"
-                  controls
-                  paused={false}
-                  onLoad={() => {
-                    CrashlyticsHelper.log(`[PaywallScreen] heroVideo loaded: ${heroVideoUrl}`);
-                    setHeroVideoReady(true);
-                  }}
-                  onError={(error) => {
-                    CrashlyticsHelper.log(
-                      `[PaywallScreen] heroVideo failed to load: videoUrl=${heroVideoUrl} error=${JSON.stringify(error)}`
-                    );
-                    setFailedVideoUrls((prev) => (prev.includes(heroVideoUrl) ? prev : [...prev, heroVideoUrl]));
-                  }}
-                  ignoreSilentSwitch="ignore"
-                />
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={StyleSheet.absoluteFillObject}
+                  onPress={() => setShowVideoControls((prev) => !prev)}
+                >
+                  <Video
+                    key={heroVideoUrl}
+                    source={{ uri: heroVideoUrl }}
+                    style={styles.heroVideo}
+                    resizeMode="cover"
+                    controls={showVideoControls}
+                    paused={false}
+                    onLoad={() => {
+                      CrashlyticsHelper.log(`[PaywallScreen] heroVideo loaded: ${heroVideoUrl}`);
+                      setHeroVideoReady(true);
+                    }}
+                    onError={(error) => {
+                      CrashlyticsHelper.log(
+                        `[PaywallScreen] heroVideo failed to load: videoUrl=${heroVideoUrl} error=${JSON.stringify(error)}`
+                      );
+                      setFailedVideoUrls((prev) => (prev.includes(heroVideoUrl) ? prev : [...prev, heroVideoUrl]));
+                    }}
+                    ignoreSilentSwitch="ignore"
+                  />
+                </TouchableOpacity>
               </View>
             )}
 
@@ -508,18 +533,18 @@ export function PaywallScreen({ navigation, route }: Props) {
 
             <View style={styles.trustBanner}>
               <Ionicons name="ribbon" size={15} color="#F2C94C" />
-              <Text style={styles.trustText}>{t('paywall_trial_trust_banner')}</Text>
+              <Text style={styles.trustText}>{content?.socialProof || t('paywall_trial_trust_banner')}</Text>
               <Ionicons name="ribbon" size={15} color="#F2C94C" />
             </View>
 
             <View style={styles.statRow}>
               <Ionicons name="leaf-outline" size={16} color="#F2C94C" />
               <Ionicons name="star" size={14} color="#F2C94C" />
-              <Text style={styles.statValue}>{t('paywall_trial_rating_value')}</Text>
-              <Text style={styles.statLabel}>{t('paywall_trial_rating_label')}</Text>
+              <Text style={styles.statValue}>{content?.ratingValue || t('paywall_trial_rating_value')}</Text>
+              <Text style={styles.statLabel}>{content?.ratingLabel || t('paywall_trial_rating_label')}</Text>
               <View style={styles.statDivider} />
-              <Text style={styles.statValue}>{t('paywall_trial_reviews_value')}</Text>
-              <Text style={styles.statLabel}>{t('paywall_trial_reviews_label')}</Text>
+              <Text style={styles.statValue}>{content?.reviewsCount || t('paywall_trial_reviews_value')}</Text>
+              <Text style={styles.statLabel}>{content?.reviewsLabel || t('paywall_trial_reviews_label')}</Text>
               <Ionicons name="leaf-outline" size={16} color="#F2C94C" />
             </View>
 
@@ -544,16 +569,16 @@ export function PaywallScreen({ navigation, route }: Props) {
                   <View style={styles.timelineTextCol}>
                     <View style={styles.timelineTitleRow}>
                       <Text style={styles.timelinePriceText}>
-                        {isFreeTrialOffer
-                          ? t('paywall_trial_timeline_trial_title_free', { days: trialDays })
-                          : (box?.trialTitle ||
-                              (trialPrice !== null
+                        {box?.trialTitle ||
+                          (isFreeTrialOffer
+                            ? t('paywall_trial_timeline_trial_title_free', { days: trialDays })
+                            : (trialPrice !== null
                                 ? t('paywall_trial_timeline_trial_title', { price: trialPrice, days: trialDays })
                                 : '…'))}
                       </Text>
                     </View>
                     <Text style={styles.timelineDesc}>
-                      {t('paywall_trial_timeline_trial_desc', { days: trialDays })}
+                      {box?.trialSubtitle || t('paywall_trial_timeline_trial_desc', { days: trialDays })}
                     </Text>
                   </View>
                 </View>
@@ -571,7 +596,7 @@ export function PaywallScreen({ navigation, route }: Props) {
                           ? t('paywall_trial_timeline_renew_title', { price: monthlyPrice })
                           : '…')}
                     </Text>
-                    <Text style={styles.timelineDesc}>{t('paywall_trial_timeline_renew_desc')}</Text>
+                    <Text style={styles.timelineDesc}>{box?.recurringSubtitle || t('paywall_trial_timeline_renew_desc')}</Text>
                   </View>
                 </View>
               </View>
@@ -608,7 +633,7 @@ export function PaywallScreen({ navigation, route }: Props) {
                   </View>
                 ))}
               </View>
-              <Text style={styles.socialText}>{t('paywall_trial_trust_banner')}</Text>
+              <Text style={styles.socialText}>{content?.socialProof || t('paywall_trial_trust_banner')}</Text>
             </View>
           </Animated.View>
         </ScrollView>
@@ -655,11 +680,12 @@ export function PaywallScreen({ navigation, route }: Props) {
               ) : (
                 <View style={styles.ctaContentRow}>
                   <Text style={styles.ctaText}>
-                    {isFreeTrialOffer
-                      ? t('paywall_trial_cta_try_free')
-                      : (trialPrice !== null
-                          ? t('paywall_trial_cta_try_premium', { price: trialPrice })
-                          : '…')}
+                    {content?.ctaPrimary ||
+                      (isFreeTrialOffer
+                        ? t('paywall_trial_cta_try_free')
+                        : (trialPrice !== null
+                            ? t('paywall_trial_cta_try_premium', { price: trialPrice })
+                            : '…'))}
                   </Text>
                   {isFreeTrialOffer && <Text style={styles.ctaStrike}>{priceReady ? monthlyPrice : '…'}</Text>}
                 </View>
