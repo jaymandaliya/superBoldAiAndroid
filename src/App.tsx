@@ -42,7 +42,6 @@ interface InitialRouteData {
   routeName: keyof RootStackParamList;
   user?: User;
   learning?: Learning | null;
-  initialStep?: 1 | 2 | 3;
 }
 
 export default function App() {
@@ -175,7 +174,6 @@ export default function App() {
             NotificationHelper.initialize();
 
             let routeName: keyof RootStackParamList;
-            let initialStep: 1 | 2 | 3 | undefined;
             if (hasName) {
               // user.name comes from the backend — reliable signal that onboarding was completed.
               // Avoids re-routing returning users through onboarding after reinstall (iOS Keychain
@@ -185,14 +183,12 @@ export default function App() {
               routeName = 'LanguageSelection';
             } else {
               routeName = 'UserNameCapture';
-              initialStep = 1;
             }
 
             setInitialRouteData({
               routeName,
               user: data.user,
               learning: normalizedLearning,
-              initialStep,
             });
           } else {
             await AuthStorage.clearAuth();
@@ -319,7 +315,6 @@ export default function App() {
           initialRouteName={initialRouteData.routeName}
           initialUser={initialRouteData.user}
           initialLearning={initialRouteData.learning}
-          initialStep={initialRouteData.initialStep}
           isConnected={isConnected}
         />
         {softUpdateInfo && (

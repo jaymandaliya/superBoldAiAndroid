@@ -384,7 +384,6 @@ export function LoginScreen({ navigation }: Props) {
         navigation.replace('UserNameCapture', {
           user: data.user,
           existingLearning: normalizedLearning,
-          initialStep: 1,
           pathChoice: 'chat',
         });
       } else if (!hasLanguages) {
@@ -397,7 +396,6 @@ export function LoginScreen({ navigation }: Props) {
         navigation.replace('UserNameCapture', {
           user: data.user,
           existingLearning: normalizedLearning,
-          initialStep: 1,
           pathChoice: 'learn',
         });
       }
