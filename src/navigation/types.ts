@@ -1,4 +1,4 @@
-import { User, Learning, OnboardingProfile, UserPath } from '../types';
+import { User, Learning, OnboardingProfile, UserPath, OnboardingGoal } from '../types';
 
 /** Serialized pending level completion for navigation (Room ↔ TestScreen). */
 export type PendingLevelCompletionPayload = {
@@ -33,13 +33,36 @@ export type RootStackParamList = {
     user: User;
     existingLearning?: Learning | null;
   };
-  // In navigation/types.ts — add pathChoice to UserNameCapture params
-UserNameCapture: {
-  user: User;
-  existingLearning?: Learning | null;
-  initialStep?: 1 | 2 | 3;
-  pathChoice?: 'learn' | 'chat';  // ADD THIS
-};
+  // Step 1 — name only. Chat path saves here directly (never asks age/goal/skill).
+  UserNameCapture: {
+    user: User;
+    existingLearning?: Learning | null;
+    pathChoice?: 'learn' | 'chat';
+  };
+  // Step 2 — age. Young-kid profiles (age < 13) finalize here directly, skipping
+  // the goal/skill screens.
+  AgeCapture: {
+    user: User;
+    existingLearning?: Learning | null;
+    name: string;
+  };
+  // Step 3 — learning goal/reason. Reachable directly (skipping UserNameCapture/AgeCapture)
+  // when name/age are already known, e.g. adding a second language for an existing user.
+  LearningGoal: {
+    user: User;
+    existingLearning?: Learning | null;
+    name: string;
+    age: number | null;
+  };
+  // Step 4 — skill level; finalizes and saves the full onboarding profile.
+  SkillLevel: {
+    user: User;
+    existingLearning?: Learning | null;
+    name: string;
+    age: number | null;
+    goal: OnboardingGoal;
+    goalLabel?: string;
+  };
   MainTabs: {
     user: User;
     existingLearning?: Learning | null;

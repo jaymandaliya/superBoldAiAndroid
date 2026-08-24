@@ -1,0 +1,249 @@
+{
+  "info": {
+    "name": "SuperBold AI — Backend API",
+    "description": "Auth, onboarding, paywall, and payment endpoints shared by the Android (Cashfree) and iOS (StoreKit) apps. Switch environments (Staging/Production) to change {{base_url}} — never hardcode a host in a request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://learning-backend-staging.scaleu.ai", "type": "string" },
+    { "key": "auth_token", "value": "", "type": "string" },
+    { "key": "native_language", "value": "en", "type": "string" },
+    { "key": "target_language", "value": "de", "type": "string" },
+    { "key": "learning_id", "value": "", "type": "string" },
+    { "key": "subscription_id", "value": "", "type": "string" },
+    { "key": "cashfree_plan_id", "value": "plan-1234", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{auth_token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"9999999999\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/send-otp", "host": ["{{base_url}}"], "path": ["api", "auth", "send-otp"] }
+          }
+        },
+        {
+          "name": "Verify OTP / Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"9999999999\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"] },
+            "description": "Response's `token` should be saved into the `auth_token` collection variable for every authenticated request below."
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"native_language\": \"{{native_language}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/auth/update-profile", "host": ["{{base_url}}"], "path": ["api", "auth", "update-profile"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Onboarding / Common",
+      "item": [
+        {
+          "name": "App Settings (isCompanionFlow)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/app-settings", "host": ["{{base_url}}"], "path": ["api", "app-settings"] }
+          }
+        },
+        {
+          "name": "Create Learning (native + target language)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nativeLanguage\": \"{{native_language}}\",\n  \"targetLanguage\": \"{{target_language}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/learnings", "host": ["{{base_url}}"], "path": ["api", "learnings"] }
+          }
+        },
+        {
+          "name": "Update Learning (age / skill / reason)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"age\": 25,\n  \"skill\": \"beginner\",\n  \"learning_reason\": \"confidence\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/learnings/{{learning_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learnings", "{{learning_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Room Token (LiveKit connect)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomName\": \"language-learning-room{{$timestamp}}\",\n  \"participantName\": \"Test_User\",\n  \"nativeLanguage\": \"{{native_language}}\",\n  \"targetLanguage\": \"{{target_language}}\",\n  \"nativeLanguageName\": \"English\",\n  \"targetLanguageName\": \"German\",\n  \"currentLevel\": 0,\n  \"learningId\": \"{{learning_id}}\",\n  \"userName\": \"Test User\",\n  \"authToken\": \"{{auth_token}}\",\n  \"isPremium\": false\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/token", "host": ["{{base_url}}"], "path": ["api", "token"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Paywall (shared — iOS + Android)",
+      "item": [
+        {
+          "name": "Get Paywall — iOS (deviceType=ios)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/paywall?nativeLanguage={{native_language}}&targetLanguage={{target_language}}&deviceType=ios",
+              "host": ["{{base_url}}"],
+              "path": ["api", "paywall"],
+              "query": [
+                { "key": "nativeLanguage", "value": "{{native_language}}" },
+                { "key": "targetLanguage", "value": "{{target_language}}" },
+                { "key": "deviceType", "value": "ios" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Paywall — Android (deviceType=android)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/paywall?nativeLanguage={{native_language}}&targetLanguage={{target_language}}&deviceType=android",
+              "host": ["{{base_url}}"],
+              "path": ["api", "paywall"],
+              "query": [
+                { "key": "nativeLanguage", "value": "{{native_language}}" },
+                { "key": "targetLanguage", "value": "{{target_language}}" },
+                { "key": "deviceType", "value": "android" }
+              ]
+            },
+            "description": "Generic endpoint both apps hit with deviceType as the differentiator. Confirmed 200 on staging."
+          }
+        },
+        {
+          "name": "Get Paywall — Android legacy path (/paywall/android)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/paywall/android?nativeLanguage={{native_language}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "paywall", "android"],
+              "query": [{ "key": "nativeLanguage", "value": "{{native_language}}" }]
+            },
+            "description": "This is the path the Android app's cashfreeSubscriptionService.ts currently calls. Historically 404'd on staging — re-check status here before assuming either URL is the source of truth."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments — iOS (StoreKit)",
+      "item": [
+        {
+          "name": "Verify IAP Receipt",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiptData\": \"<base64-storekit-receipt>\",\n  \"productId\": \"com.superboldai.premium.monthly\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/iap/verify", "host": ["{{base_url}}"], "path": ["api", "iap", "verify"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments — Android (Cashfree Subscriptions)",
+      "item": [
+        {
+          "name": "Get Cashfree Config",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/subscriptions/cashfree/config", "host": ["{{base_url}}"], "path": ["api", "subscriptions", "cashfree", "config"] },
+            "description": "enabled:false ⇒ app must fall back to the PayU tier flow."
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"{{cashfree_plan_id}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/subscriptions/cashfree/create", "host": ["{{base_url}}"], "path": ["api", "subscriptions", "cashfree", "create"] },
+            "description": "planId must be echoed from the paywall offer — never invented client-side. Response's subscription_id should be saved into the subscription_id collection variable."
+          }
+        },
+        {
+          "name": "Verify Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": \"{{subscription_id}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/subscriptions/cashfree/verify", "host": ["{{base_url}}"], "path": ["api", "subscriptions", "cashfree", "verify"] },
+            "description": "The ONLY thing that actually grants access — never trust the native SDK's onVerify callback alone."
+          }
+        },
+        {
+          "name": "Get Subscription Status",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/subscriptions/cashfree/status", "host": ["{{base_url}}"], "path": ["api", "subscriptions", "cashfree", "status"] }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"CANCEL\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/api/subscriptions/cashfree/cancel", "host": ["{{base_url}}"], "path": ["api", "subscriptions", "cashfree", "cancel"] }
+          }
+        }
+      ]
+    }
+  ]
+}

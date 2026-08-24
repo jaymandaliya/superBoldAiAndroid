@@ -14,15 +14,21 @@ import Toast from 'react-native-simple-toast';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { RootStackParamList } from '../navigation/types';
-import { COLORS, FONTS, AUTH_URL } from '../constants';
+import { COLORS, FONTS, AUTH_URL, LEARNING_URL } from '../constants';
 import { LANGUAGES } from '../constants/languages';
-import { LanguageSelector } from '../components';
+import { LanguageSelector, LanguageConfirmSheet } from '../components';
 import { AuthStorage, CrashlyticsHelper } from '../helpers';
 import { useI18n } from '../localization';
-import { Language } from '../types';
+import { Language, Learning } from '../types';
+import { fetchAppSettings } from '../services';
 
 const NATIVE_LANGUAGE_CODES = ['hi', 'gu', 'mr', 'bn', 'ta', 'te', 'en', 'kn', 'ml', 'pa', 'ur'];
 const NATIVE_LANGUAGES = NATIVE_LANGUAGE_CODES
+  .map(code => LANGUAGES.find(l => l.code === code))
+  .filter((l): l is Language => Boolean(l));
+
+const TARGET_LANGUAGE_CODES = ['en', 'de', 'fr', 'es', 'nl', 'sv', 'hi', 'zh', 'ja', 'ko'];
+const TARGET_LANGUAGES = TARGET_LANGUAGE_CODES
   .map(code => LANGUAGES.find(l => l.code === code))
   .filter((l): l is Language => Boolean(l));
 
@@ -35,6 +41,11 @@ export function OnboardingLanguageModal({ navigation, route }: Props) {
 
   const [native, setNative] = useState<Language | null>(null);
   const [showNative, setShowNative] = useState(false);
+  const [target, setTarget] = useState<Language | null>(null);
+  const [showTargetPicker, setShowTargetPicker] = useState(false);
+  const [showTargetConfirm, setShowTargetConfirm] = useState(false);
+  const [confirmingTarget, setConfirmingTarget] = useState(false);
+  const [pendingUser, setPendingUser] = useState<typeof user | null>(null);
 
   const slideAnim = useRef(new Animated.Value(60)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -78,13 +89,83 @@ export function OnboardingLanguageModal({ navigation, route }: Props) {
         }).catch(() => {});
       }
 
-      navigation.replace('PathChoice', {
-        user: { ...user, native_language: native.code } as typeof user,
-        existingLearning,
-      });
+      const updatedUser = { ...user, native_language: native.code } as typeof user;
+
+      // Skip the path-choice screen entirely when the 1:1 companion flow is remotely disabled —
+      // there's nothing to choose between, so go straight into profile completion.
+      let isCompanionFlowEnabled = true;
+      try {
+        const { ok, settings } = await fetchAppSettings();
+        if (ok && settings) isCompanionFlowEnabled = settings.isCompanionFlow;
+      } catch (error) {
+        CrashlyticsHelper.recordError(error as Error, 'fetchAppSettings:onboardingLanguage');
+      }
+
+      if (isCompanionFlowEnabled) {
+        navigation.replace('PathChoice', {
+          user: updatedUser,
+          existingLearning,
+        });
+      } else {
+        // No path to choose — still need a target language before profile completion.
+        setPendingUser(updatedUser);
+        setShowTargetConfirm(true);
+        setTimeout(() => setShowTargetPicker(true), 350);
+      }
     } catch (e) {
       CrashlyticsHelper.recordError(e as Error, 'OnboardingLanguageModal.handleContinue');
       Toast.show('Something went wrong. Please try again.', Toast.SHORT);
+    }
+  };
+
+  const handleTargetPicked = (lang: Language) => {
+    if (native && lang.code === native.code) {
+      Toast.show(t('language_selection_same_language_toast'), Toast.SHORT);
+      return;
+    }
+    setTarget(lang);
+    setShowTargetPicker(false);
+  };
+
+  const handleConfirmTarget = async () => {
+    if (!target) return;
+    setConfirmingTarget(true);
+    const updatedUser = pendingUser ?? user;
+
+    try {
+      const token = await AuthStorage.getToken();
+      let learningToPass: Learning | null | undefined = existingLearning;
+
+      if (token && native) {
+        const response = await fetch(LEARNING_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ nativeLanguage: native.code, targetLanguage: target.code }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.learning) learningToPass = data.learning as Learning;
+          await AuthStorage.saveLanguageContext(native.code, target.code, String(user.id));
+        }
+      }
+
+      setShowTargetConfirm(false);
+      navigation.replace('UserNameCapture', {
+        user: updatedUser,
+        existingLearning: learningToPass,
+        pathChoice: 'learn',
+      });
+    } catch (e) {
+      CrashlyticsHelper.recordError(e as Error, 'OnboardingLanguageModal.handleConfirmTarget');
+      setShowTargetConfirm(false);
+      navigation.replace('UserNameCapture', {
+        user: updatedUser,
+        existingLearning,
+        pathChoice: 'learn',
+      });
+    } finally {
+      setConfirmingTarget(false);
     }
   };
 
@@ -161,6 +242,32 @@ export function OnboardingLanguageModal({ navigation, route }: Props) {
         title={t('language_selection_select_native_modal_title')}
         selectedLanguage={native}
         languages={NATIVE_LANGUAGES}
+      />
+
+      <LanguageSelector
+        visible={showTargetPicker}
+        onClose={() => setShowTargetPicker(false)}
+        onSelect={handleTargetPicked}
+        title={t('path_choice_target_lang_title')}
+        selectedLanguage={target}
+        languages={TARGET_LANGUAGES}
+      />
+
+      <LanguageConfirmSheet
+        visible={showTargetConfirm}
+        title={t('path_choice_target_lang_title')}
+        label={t('language_selection_i_want_to_learn_label')}
+        language={target}
+        placeholder={t('language_selection_target_placeholder')}
+        onPressChange={() => setShowTargetPicker(true)}
+        ctaLabel={t('language_selection_continue_setup_button')}
+        onConfirm={handleConfirmTarget}
+        ctaDisabled={!target}
+        ctaLoading={confirmingTarget}
+        onBack={() => {
+          setShowTargetConfirm(false);
+          setShowTargetPicker(false);
+        }}
       />
     </View>
   );
