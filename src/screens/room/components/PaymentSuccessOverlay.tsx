@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-nati
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PROFESSIONAL_COLORS } from '../roomTheme';
+import { COLORS } from '../../../constants';
 
 type Props = {
   title?: string;
@@ -54,11 +55,11 @@ export function PaymentSuccessOverlay({
           ) : null}
 
           <TouchableOpacity style={styles.primaryButton} onPress={onContinueLearning} activeOpacity={0.88}>
-            <Text style={styles.primaryButtonText}>Continue to learning</Text>
+            <Text style={styles.primaryButtonText}>Go to Learning</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryButton} onPress={onGoToDashboard} activeOpacity={0.88}>
-            <Text style={styles.secondaryButtonText}>Back to dashboard</Text>
+            <Text style={styles.secondaryButtonText}>Go to Dashboard</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     width: '100%',
-    backgroundColor: PROFESSIONAL_COLORS.primary,
+    backgroundColor: COLORS.primary,
     borderRadius: 16,
     minHeight: 58,
     alignItems: 'center',

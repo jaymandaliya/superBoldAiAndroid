@@ -2615,7 +2615,7 @@ const handleMicControl = async (data:any) => {
 
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>
-              {hasPaidAccess(learning) ? `Level ${getDisplayLevel(learning.current_level)}` : 'Free Trial'}
+              {hasPaidAccess(learning) ? `Level ${getDisplayLevel(learning.current_level)}` : 'Trial Active'}
             </Text>
             <Text style={styles.headerSubtitle}>Session {formatTime(sessionTime)}</Text>
           </View>

@@ -19,8 +19,11 @@ import {
   OnboardingLanguageModal,
   CashfreeSubscriptionScreen,
   PaywallScreen,
+  UserNameCaptureScreen,
+  AgeCaptureScreen,
+  LearningGoalScreen,
+  SkillLevelScreen,
 } from '../screens';
-import { UserNameCaptureScreen } from '../screens/UserNameCaptureScreen';
 import { PathChoiceScreen } from '../screens/PathChoiceScreen';
 import { TestScreen } from '../screens/TestScreen';
 import { TalkingScreen } from '../screens/TalkingScreen';
@@ -38,7 +41,6 @@ interface AppNavigatorProps {
   initialRouteName: keyof RootStackParamList;
   initialUser?: User;
   initialLearning?: Learning | null;
-  initialStep?: 1 | 2 | 3;
   isConnected: boolean;
 }
 
@@ -46,7 +48,6 @@ export function AppNavigator({
   initialRouteName,
   initialUser,
   initialLearning,
-  initialStep,
   isConnected,
 }: AppNavigatorProps) {
   return (
@@ -132,9 +133,27 @@ export function AppNavigator({
           component={UserNameCaptureScreen}
           initialParams={
             initialRouteName === 'UserNameCapture' && initialUser
-              ? { user: initialUser, existingLearning: initialLearning, initialStep }
+              ? { user: initialUser, existingLearning: initialLearning }
               : undefined
           }
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="AgeCapture"
+          component={AgeCaptureScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="LearningGoal"
+          component={LearningGoalScreen}
+          options={{ headerShown: false }}
+        />
+
+        <Stack.Screen
+          name="SkillLevel"
+          component={SkillLevelScreen}
           options={{ headerShown: false }}
         />
 

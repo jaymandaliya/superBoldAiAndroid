@@ -128,17 +128,22 @@ export function PathChoiceScreen({ navigation, route }: Props) {
     }
   };
 
-  // Name is already known for a returning user — skip straight to the goal step.
-  // (iOS routes to a separate LearningGoal screen here; Android's UserNameCapture
-  // is the same consolidated wizard for all three steps, so initialStep:2 is the
-  // equivalent "skip past name entry".)
+  // Name/age are already known for a returning user — skip straight to the goal step.
   const navigateToNameOrGoal = (learningToPass: Learning | null | undefined) => {
-    navigation.navigate('UserNameCapture', {
-      user,
-      existingLearning: learningToPass,
-      initialStep: user.name ? 2 : 1,
-      pathChoice: 'learn',
-    });
+    if (user.name) {
+      navigation.navigate('LearningGoal', {
+        user,
+        existingLearning: learningToPass,
+        name: user.name,
+        age: null,
+      });
+    } else {
+      navigation.navigate('UserNameCapture', {
+        user,
+        existingLearning: learningToPass,
+        pathChoice: 'learn',
+      });
+    }
   };
 
   const handleChat = async () => {
@@ -147,7 +152,6 @@ export function PathChoiceScreen({ navigation, route }: Props) {
       navigation.navigate('UserNameCapture', {
         user,
         existingLearning,
-        initialStep: 1,
         pathChoice: 'chat',
       });
     } catch (e) {

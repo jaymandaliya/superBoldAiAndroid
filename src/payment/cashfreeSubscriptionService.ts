@@ -72,6 +72,26 @@ export type CashfreeAndroidPaywall = {
   content?: CashfreeAndroidPaywallContent;
 };
 
+/**
+ * Used only when CASHFREE_FORCE_SHOW_OFFER_FOR_TESTING is on and GET /api/paywall/android
+ * fails (backend not wired up yet) — lets the offer UI render for local testing instead of
+ * sitting blank forever. Mirrors the real live offer: ₹1 authorized and kept (not refunded),
+ * then ₹199/month after the 3-day trial. `content` is intentionally omitted — the screen's
+ * own hardcoded copy fallbacks (t('paywall_trial_*')) cover it.
+ */
+export const CASHFREE_FALLBACK_OFFER: CashfreeAndroidOffer = {
+  enabled: true,
+  planId: 'fallback_test_plan',
+  currency: 'INR',
+  currencySymbol: '₹',
+  trialDays: 3,
+  trialPrice: '₹1',
+  recurringPrice: '₹199',
+  recurringPeriod: 'month',
+  authorizationAmount: 1,
+  authorizationAmountRefunded: false,
+};
+
 export async function fetchAndroidPaywall(
   nativeLanguage: string
 ): Promise<{ ok: boolean; paywall: CashfreeAndroidPaywall | null }> {

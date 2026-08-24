@@ -10,7 +10,7 @@ export const YOUR_COMPUTER_IP = '192.168.1.5';  // Your local IP (for dev only)
 export const IS_REAL_DEVICE = true;
 
 // Production URL
-const PRODUCTION_URL = 'https://learning-backend-staging.scaleu.ai';
+const PRODUCTION_URL = 'https://learning-backend.scaleu.ai';
 
 // Automatically switch between dev and pro duction
 export const BASE_URL = IS_DEVELOPMENT
